@@ -1,2 +1,2 @@
-CREATE DATABASE restaurant_saas;
+CREATE DATABASE smartcomanda_db;
 CREATE DATABASE n8n_db;

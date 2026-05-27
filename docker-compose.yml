@@ -3,6 +3,22 @@ version: "3.9"
 name: smartcomanda
 
 services:
+  ollama:
+    container_name: smartcomanda_ollama  
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - smartcomanda_ollama_models:/root/.ollama
+    networks:
+      - smartcomanda_network
+    deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: all
+                capabilities: [gpu]
 
   postgres:
     image: postgres:16
@@ -14,7 +30,7 @@ services:
       POSTGRES_PASSWORD: admin123
 
     ports:
-    
+
       - "5432:5432"
 
     volumes:
@@ -29,8 +45,6 @@ services:
 
     networks:
       - smartcomanda_network
-
-
 
   pgadmin:
     image: dpage/pgadmin4
@@ -53,8 +67,6 @@ services:
 
     networks:
       - smartcomanda_network
-
-
 
   api:
     build:
@@ -81,8 +93,6 @@ services:
 
     networks:
       - smartcomanda_network
-
-
 
   n8n:
     image: n8nio/n8n
@@ -116,8 +126,6 @@ services:
     networks:
       - smartcomanda_network
 
-
-
   angular_admin:
     build:
       context: ./frontend-admin
@@ -134,15 +142,14 @@ services:
     networks:
       - smartcomanda_network
 
-
-
 networks:
   smartcomanda_network:
     name: smartcomanda_network
 
-
-
 volumes:
+  smartcomanda_ollama_models:
+    name: smartcomanda_ollama_models
+  
   smartcomanda_postgres_data:
     name: smartcomanda_postgres_data
 
