@@ -1,0 +1,2 @@
+CREATE DATABASE restaurant_saas;
+CREATE DATABASE n8n_db;
