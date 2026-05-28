@@ -1,0 +1,124 @@
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Impulsa tu negocio con un Chatbot de WhatsApp inteligente</h1>
+        <p>Configura fácilmente un chatbot para WhatsApp Business y mejora la atención al cliente 24/7</p>
+        <div class="hero-actions">
+            <a href="#signup" class="btn-primary">Comenzar gratis</a>
+            <a href="#features" class="btn-secondary">Ver características</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <!-- Placeholder for illustration -->
+        <div class="illustration-placeholder">
+            <svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="300" height="200" fill="#f0f7ff"/>
+                <text x="150" y="100" text-anchor="middle" fill="#6b7280" font-size="16">Ilustración del chatbot</text>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="features">
+    <div class="section-header">
+        <h2>¿Por qué elegir SmartComanda?</h2>
+        <p>Descubre cómo nuestro plataforma transforma la comunicación con tus clientes</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h3>Sin necesidad de código</h3>
+            <p>Configura tu chatbot mediante una interfaz visual intuitiva, sin escribir una sola línea de código.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h3>Integración oficial</h3>
+            <p>Conecta directamente con la API de WhatsApp Business para una experiencia segura y confiable.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h3>Respuestas inteligentes</h3>
+            <p>Utiliza IA para entender y responder automáticamente a las consultas más comunes de tus clientes.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h3>Análisis en tiempo real</h3>
+            <p>Monitorea el rendimiento de tu chatbot con métricas detalladas y reportes personalizables.</p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works">
+    <div class="section-header">
+        <h2>Así de simple es comenzar</h2>
+        <p>En solo 3 pasos tendrás tu chatbot de WhatsApp funcionando</p>
+    </div>
+    <div class="steps-container">
+        <div class="step">
+            <div class="step-number">1</div>
+            <h3>Regístrate y conecta</h3>
+            <p>Crea tu cuenta y vincula tu número de WhatsApp Business de forma segura.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <h3>Personaliza tu chatbot</h3>
+            <p>Define flujos de conversación, respuestas automáticas y horarios de atención.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <h3>Activa y attiende</h3>
+            <p>Publica tu chatbot y comienza a interactuar con tus clientes al instante.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Signup Section -->
+<section class="signup" id="signup">
+    <div class="section-header">
+        <h2>¡Listo para comenzar?</h2>
+        <p>Regístrate gratis y prueba nuestra plataforma durante 14 días</p>
+    </div>
+    <form class="signup-form" #signupForm="ngForm" (ngSubmit)="onSubmit(signupForm.value)">
+        <div class="form-group">
+            <label for="name">Nombre completo</label>
+            <input type="text" id="name" name="name" placeholder="Juan Pérez" required ngModel>
+        </div>
+        <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="juan@empresa.com" required ngModel>
+        </div>
+        <div class="form-group">
+            <label for="phone">Teléfono de contacto</label>
+            <input type="tel" id="phone" name="phone" placeholder="+56 9 1234 5678" required ngModel>
+        </div>
+        <div class="form-group">
+            <label for="company">Nombre de la empresa</label>
+            <input type="text" id="company" name="company" placeholder="Mi Empresa Ltda." required ngModel>
+        </div>
+        <div class="form-group">
+            <label for="whatsapp">Número de WhatsApp Business (opcional)</label>
+            <input type="tel" id="whatsapp" name="whatsapp" placeholder="+56 9 9876 5432" ngModel>
+            <small>Si ya tienes un número aprobado por WhatsApp Business</small>
+        </div>
+        <button type="submit" class="btn-primary">Crear cuenta gratis</button>
+        <p class="form-note">Al registrarte, aceptas nuestros Términos de Servicio y Política de Privacidad.</p>
+    </form>
+</section>

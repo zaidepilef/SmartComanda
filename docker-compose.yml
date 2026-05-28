@@ -21,7 +21,7 @@ services:
                 capabilities: [gpu]
 
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: smartcomanda_postgres
     restart: unless-stopped
 
@@ -77,7 +77,7 @@ services:
 
     environment:
       PORT: 3000
-      DATABASE_URL: postgresql://admin:admin123@postgres:5432/restaurant_saas
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/smartcomanda_db
       JWT_SECRET: supersecretkey
 
     ports:
