@@ -1,0 +1,15 @@
+<c-card class="mb-4">
+  <c-card-header>
+    <h5 class="card-title mb-0">CoreUI Icons</h5>
+  </c-card-header>
+  <c-card-body>
+    <c-row>
+      @for (icon of icons; track icon) {
+        <c-col xs="4" sm="3" md="2" class="mb-4 text-center">
+          <svg cIcon [name]="icon" size="xl" class="mb-2"></svg>
+          <div class="small text-body-secondary text-truncate">{{ icon }}</div>
+        </c-col>
+      }
+    </c-row>
+  </c-card-body>
+</c-card>

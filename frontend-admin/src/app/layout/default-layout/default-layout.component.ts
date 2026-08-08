@@ -1,0 +1,44 @@
+import { Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { NgScrollbar } from 'ngx-scrollbar';
+
+import {
+  ContainerComponent,
+  ShadowOnScrollDirective,
+  SidebarBrandComponent,
+  SidebarComponent,
+  SidebarFooterComponent,
+  SidebarHeaderComponent,
+  SidebarNavComponent,
+  SidebarToggleDirective,
+  SidebarTogglerDirective
+} from '@coreui/angular';
+
+import { DefaultFooterComponent } from './default-footer/default-footer.component';
+import { DefaultHeaderComponent } from './default-header/default-header.component';
+import { navItems } from './_nav';
+
+@Component({
+  selector: 'app-default-layout',
+  templateUrl: './default-layout.component.html',
+  styleUrls: ['./default-layout.component.scss'],
+  imports: [
+    SidebarComponent,
+    SidebarHeaderComponent,
+    SidebarBrandComponent,
+    SidebarNavComponent,
+    SidebarFooterComponent,
+    SidebarToggleDirective,
+    SidebarTogglerDirective,
+    ContainerComponent,
+    DefaultFooterComponent,
+    DefaultHeaderComponent,
+    NgScrollbar,
+    RouterOutlet,
+    RouterLink,
+    ShadowOnScrollDirective
+  ]
+})
+export class DefaultLayoutComponent {
+  public navItems = [...navItems];
+}
