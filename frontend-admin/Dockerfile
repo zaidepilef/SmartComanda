@@ -1,4 +1,19 @@
 # =========================================
+# Development (live reload)
+# =========================================
+FROM node:22-alpine AS dev
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "start"]
+
+# =========================================
 # Build Angular
 # =========================================
 FROM node:22-alpine AS build
