@@ -1,8 +1,8 @@
 ## 1. Security hardening (do first)
 
-- [ ] 1.1 Create root `.gitignore` covering `.env`, `backups/`, `node_modules/`, and OS/editor noise.
-- [ ] 1.2 Untrack the existing `.env` (`git rm --cached .env`) without deleting it from disk.
-- [ ] 1.3 Create root `.env.example` documenting `MONGODB_URI`, `MONGODB_PORT`, `ATLAS_MONGODB_URI` (placeholders only) plus the existing vars, and verify no real secret appears in any tracked file.
+- [x] 1.1 Create root `.gitignore` covering `.env`, `backups/`, `node_modules/`, and OS/editor noise.
+- [x] 1.2 Untrack the existing `.env` (`git rm --cached .env`) without deleting it from disk.
+- [x] 1.3 Create root `.env.example` documenting `MONGODB_URI`, `MONGODB_PORT`, `ATLAS_MONGODB_URI` (placeholders only) plus the existing vars, and verify no real secret appears in any tracked file.
 
 ## 2. Docker Compose — MongoDB service
 

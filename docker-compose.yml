@@ -65,6 +65,7 @@ services:
       PORT: ${PORT}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: mongodb://mongodb:27017/smartcomanda
 
     ports:
       - "3000:3000"
@@ -76,6 +77,29 @@ services:
     volumes:
       - ./backend:/app
       - smartcomanda_backend_node_modules:/app/node_modules
+
+    networks:
+      - smartcomanda_network
+
+
+
+  mongodb:
+    image: mongo:8
+    container_name: smartcomanda_mongodb
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:${MONGODB_PORT:-27017}:27017"
+
+    volumes:
+      - smartcomanda_mongodb_data:/data/db
+      - ./backups:/backups
+
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 })' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     networks:
       - smartcomanda_network
@@ -158,6 +182,9 @@ networks:
 volumes:
   smartcomanda_postgres_data:
     name: smartcomanda_postgres_data
+
+  smartcomanda_mongodb_data:
+    name: smartcomanda_mongodb_data
 
   smartcomanda_pgadmin_data:
     name: smartcomanda_pgadmin_data
