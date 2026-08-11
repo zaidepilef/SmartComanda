@@ -132,11 +132,7 @@ Para nuevas funcionalidades:
 # Backend
 
 Ubicación:
-
-
 /backend
-
-
 Tecnología:
 
 - Node.js.
@@ -153,7 +149,6 @@ Reglas:
 
 Preferir estructura:
 
-
 src/
 
 ├── controllers
@@ -164,7 +159,6 @@ src/
 ├── middleware
 ├── config
 └── utils
-
 
 ---
 
