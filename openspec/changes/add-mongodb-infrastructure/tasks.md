@@ -6,24 +6,24 @@
 
 ## 2. Docker Compose — MongoDB service
 
-- [ ] 2.1 Add `mongodb` service (`mongo:8`) to `docker-compose.yml` on `smartcomanda_network` with `restart: unless-stopped` and named volume `smartcomanda_mongodb_data`.
-- [ ] 2.2 Add host port binding `127.0.0.1:${MONGODB_PORT:-27017}:27017` and `./backups:/backups` volume mount.
-- [ ] 2.3 Add `mongosh` healthcheck (ping command, 5s interval, 10 retries) and declare the volume in the top-level `volumes:` block per existing naming conventions.
-- [ ] 2.4 Add `MONGODB_URI: mongodb://mongodb:27017/smartcomanda` to the `api` service environment; ensure existing services (postgres, pgadmin, n8n, angular_admin) are untouched.
-- [ ] 2.5 Start the stack (`docker compose up -d mongodb`), verify the container reports healthy, and verify local data persists across a container restart.
+- [x] 2.1 Add `mongodb` service (`mongo:8`) to `docker-compose.yml` on `smartcomanda_network` with `restart: unless-stopped` and named volume `smartcomanda_mongodb_data`.
+- [x] 2.2 Add host port binding `127.0.0.1:${MONGODB_PORT:-27017}:27017` and `./backups:/backups` volume mount.
+- [x] 2.3 Add `mongosh` healthcheck (ping command, 5s interval, 10 retries) and declare the volume in the top-level `volumes:` block per existing naming conventions.
+- [x] 2.4 Add `MONGODB_URI: mongodb://mongodb:27017/smartcomanda` to the `api` service environment; ensure existing services (postgres, pgadmin, n8n, angular_admin) are untouched.
+- [x] 2.5 Start the stack (`docker compose up -d mongodb`), verify the container reports healthy, and verify local data persists across a container restart.
 
 ## 3. Backend — config and connection
 
-- [ ] 3.1 Add `mongodb` driver dependency to `backend/package.json` (official `mongodb` package).
-- [ ] 3.2 Create `backend/src/config/env.js` loading `dotenv` and resolving `MONGODB_URI` (default `mongodb://localhost:27017/smartcomanda`).
-- [ ] 3.3 Create `backend/src/db/mongo.js` with `connectMongo()` (timeout ~5s, fail fast `process.exit(1)` with a clear error), a live connection-state flag updated by driver `close`/`error` events, and `closeMongo()`.
-- [ ] 3.4 Modify `backend/src/server.js` to run the startup sequence (config → connect DB → listen) and add SIGTERM/SIGINT graceful shutdown; keep existing routes intact.
+- [x] 3.1 Add `mongodb` driver dependency to `backend/package.json` (official `mongodb` package).
+- [x] 3.2 Create `backend/src/config/env.js` loading `dotenv` and resolving `MONGODB_URI` (default `mongodb://localhost:27017/smartcomanda`).
+- [x] 3.3 Create `backend/src/db/mongo.js` with `connectMongo()` (timeout ~5s, fail fast `process.exit(1)` with a clear error), a live connection-state flag updated by driver `close`/`error` events, and `closeMongo()`.
+- [x] 3.4 Modify `backend/src/server.js` to run the startup sequence (config → connect DB → listen) and add SIGTERM/SIGINT graceful shutdown; keep existing routes intact.
 
 ## 4. Health check endpoint
 
-- [ ] 4.1 Create `backend/src/routes/health.js` exposing `GET /health` returning 200 `{ status: "ok", database: "connected" }` when a `ping` succeeds and 503 `{ status: "degraded", database: "disconnected" }` otherwise (with ping timeout).
-- [ ] 4.2 Mount the health route in `server.js` without affecting the existing `/` route.
-- [ ] 4.3 Verify manually: `/health` returns 200 with MongoDB up, 503 after `docker compose stop mongodb`, and 200 again after restart.
+- [x] 4.1 Create `backend/src/routes/health.js` exposing `GET /health` returning 200 `{ status: "ok", database: "connected" }` when a `ping` succeeds and 503 `{ status: "degraded", database: "disconnected" }` otherwise (with ping timeout).
+- [x] 4.2 Mount the health route in `server.js` without affecting the existing `/` route.
+- [x] 4.3 Verify manually: `/health` returns 200 with MongoDB up, 503 after `docker compose stop mongodb`, and 200 again after restart.
 
 ## 5. Backup/restore scripts
 
