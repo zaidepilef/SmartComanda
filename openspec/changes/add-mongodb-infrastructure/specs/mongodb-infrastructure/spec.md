@@ -50,7 +50,7 @@ The system SHALL support MongoDB Atlas as the remote database without any code c
 
 #### Scenario: Never storing Atlas credentials in the repository
 - **WHEN** MongoDB Atlas credentials are required for execution
-- **THEN** they are provided exclusively through the `MONGODB_URI` environment variable and never stored in tracked files, with `.env.example` documenting only placeholders.
+- **THEN** they are provided exclusively through environment variables (`MONGODB_URI` for the application and `ATLAS_MONGODB_URI` for the backup/restore scripts) and never stored in tracked files, with `.env.example` documenting only placeholders.
 
 ### Requirement: Controlled backup and restore via official MongoDB tools
 The system SHALL provide scripts using `mongodump` and `mongorestore` for one-way, manually invoked backups between environments (LOCAL → backup archive, ATLAS → backup archive, and restores in both directions), without any automatic bidirectional replication.
