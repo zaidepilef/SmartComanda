@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { User, UserService, UserStatus } from './user.service';
+import { CREATABLE_ROLES, User, UserRole, UserService, UserStatus } from './user.service';
+import { Tenant, TenantService } from '../../services/tenants.service';
 
 const STATUS_LABELS: Record<UserStatus, string> = {
   pending: 'Pendiente',
@@ -15,6 +16,40 @@ const STATUS_BADGES: Record<UserStatus, string> = {
   inactive: 'text-bg-secondary',
 };
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  sysadmin: 'Sysadmin',
+  owner: 'Owner',
+  admin: 'Admin',
+  cashier: 'Cajero',
+};
+
+const ROLE_BADGES: Record<UserRole, string> = {
+  sysadmin: 'text-bg-dark',
+  owner: 'text-bg-primary',
+  admin: 'text-bg-info',
+  cashier: 'text-bg-secondary',
+};
+
+interface NewUserForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  status: UserStatus;
+  role: Exclude<UserRole, 'sysadmin'>;
+  tenantId: string;
+}
+
+const EMPTY_NEW_USER: NewUserForm = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  status: 'active',
+  role: 'owner',
+  tenantId: '',
+};
+
 @Component({
   selector: 'app-users',
   imports: [FormsModule],
@@ -22,6 +57,7 @@ const STATUS_BADGES: Record<UserStatus, string> = {
 })
 export class UsersComponent {
   readonly #userService = inject(UserService);
+  readonly #tenantService = inject(TenantService);
 
   users: User[] = [];
   statusFilter = 'pending';
@@ -33,9 +69,14 @@ export class UsersComponent {
   error = '';
   editing: User | null = null;
   saving = false;
+  creating = false;
+  newUser: NewUserForm = { ...EMPTY_NEW_USER };
+  tenants: Tenant[] = [];
+  creatableRoles = CREATABLE_ROLES;
 
   constructor() {
     this.#load();
+    this.#loadTenants();
   }
 
   #load(): void {
@@ -64,6 +105,22 @@ export class UsersComponent {
 
   badge(status: UserStatus): string {
     return STATUS_BADGES[status];
+  }
+
+  roleLabel(role: UserRole | undefined): string {
+    return role ? ROLE_LABELS[role] : '—';
+  }
+
+  roleBadge(role: UserRole | undefined): string {
+    return role ? ROLE_BADGES[role] : 'text-bg-light';
+  }
+
+  #loadTenants(): void {
+    this.#tenantService.list().subscribe({
+      next: (tenants) => {
+        this.tenants = tenants;
+      }
+    });
   }
 
   applyFilter(): void {
@@ -112,6 +169,45 @@ export class UsersComponent {
     this.editing = null;
   }
 
+  startCreate(): void {
+    this.newUser = { ...EMPTY_NEW_USER };
+    this.creating = true;
+    this.error = '';
+  }
+
+  cancelCreate(): void {
+    this.creating = false;
+  }
+
+  saveCreate(): void {
+    this.saving = true;
+    this.error = '';
+
+    const { firstName, lastName, email, password, status, role, tenantId } = this.newUser;
+
+    this.#userService
+      .create({
+        firstName,
+        lastName,
+        email,
+        password,
+        status,
+        role,
+        tenantId: tenantId || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.creating = false;
+          this.#load();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.error = err.error?.error ?? 'No se pudo crear el usuario.';
+        }
+      });
+  }
+
   saveEdit(): void {
     if (!this.editing) {
       return;
@@ -120,9 +216,19 @@ export class UsersComponent {
     this.saving = true;
     this.error = '';
 
-    const { _id, firstName, lastName, email, status } = this.editing;
+    const { _id, firstName, lastName, email, status, role, tenantId } = this.editing;
 
-    this.#userService.update(_id, { firstName, lastName, email, status }).subscribe({
+    const payload = { firstName, lastName, email, status };
+
+    if (role) {
+      (payload as { role?: UserRole }).role = role;
+    }
+
+    if (tenantId) {
+      (payload as { tenantId?: string }).tenantId = tenantId;
+    }
+
+    this.#userService.update(_id, payload).subscribe({
       next: () => {
         this.saving = false;
         this.editing = null;

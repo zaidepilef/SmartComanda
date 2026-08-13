@@ -45,6 +45,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'tenants',
+        loadComponent: () => import('./views/tenants/tenants.component').then((m) => m.TenantsComponent),
+        data: {
+          title: 'Tenants'
+        }
+      },
+      {
         path: 'tables',
         loadComponent: () => import('./views/tables/tables.component').then((m) => m.TablesComponent),
         data: {

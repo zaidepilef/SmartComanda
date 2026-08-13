@@ -6,12 +6,19 @@ import { environment } from '../../../environments/environment';
 
 export type UserStatus = 'active' | 'inactive' | 'pending';
 
+export type UserRole = 'sysadmin' | 'owner' | 'admin' | 'cashier';
+
+export const CREATABLE_ROLES: UserRole[] = ['owner', 'admin', 'cashier'];
+
 export interface User {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
   status: UserStatus;
+  name?: string;
+  role?: UserRole;
+  tenantId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -26,12 +33,26 @@ export interface UserListResponse {
   };
 }
 
+export interface UserCreatePayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  status?: UserStatus;
+  name?: string;
+  role?: UserRole;
+  tenantId?: string;
+}
+
 export interface UserUpdatePayload {
   firstName?: string;
   lastName?: string;
   email?: string;
   status?: UserStatus;
   password?: string;
+  name?: string;
+  role?: UserRole;
+  tenantId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -47,6 +68,10 @@ export class UserService {
     return this.#http.get<UserListResponse>(`${environment.apiUrl}/api/users`, {
       params: httpParams,
     });
+  }
+
+  create(payload: UserCreatePayload): Observable<User> {
+    return this.#http.post<User>(`${environment.apiUrl}/api/users`, payload);
   }
 
   update(id: string, payload: UserUpdatePayload): Observable<User> {

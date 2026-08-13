@@ -19,6 +19,7 @@
           </select>
         </div>
         <span class="text-body-secondary">{{ total }} usuario(s)</span>
+        <button class="btn btn-primary" (click)="startCreate()">Nuevo usuario</button>
       </div>
 
       @if (error) {
@@ -75,6 +76,35 @@
                 <option value="inactive">Inactivo</option>
               </select>
             </div>
+            @if (editing.role !== 'sysadmin') {
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="editRole">Rol</label>
+                <select
+                  id="editRole"
+                  class="form-select"
+                  [(ngModel)]="editing.role"
+                  name="editRole"
+                >
+                  @for (role of creatableRoles; track role) {
+                    <option [value]="role">{{ roleLabel(role) }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="editTenant">Tenant</label>
+                <select
+                  id="editTenant"
+                  class="form-select"
+                  [(ngModel)]="editing.tenantId"
+                  name="editTenant"
+                >
+                  <option value="">Sin tenant</option>
+                  @for (tenant of tenants; track tenant._id) {
+                    <option [value]="tenant._id">{{ tenant.name }}</option>
+                  }
+                </select>
+              </div>
+            }
           </div>
           <div class="d-flex gap-2 mt-3">
             <button type="submit" class="btn btn-primary" [disabled]="saving">
@@ -87,12 +117,115 @@
         </form>
       }
 
+      @if (creating) {
+        <form class="border rounded p-3 mb-3 bg-body-tertiary" (ngSubmit)="saveCreate()">
+          <h6 class="fw-semibold mb-3">Nuevo usuario</h6>
+          <div class="row g-3">
+            <div class="col-12 col-sm-6 col-md-3">
+              <label class="form-label" for="newFirstName">Nombre</label>
+              <input
+                id="newFirstName"
+                type="text"
+                class="form-control"
+                [(ngModel)]="newUser.firstName"
+                name="newFirstName"
+                required
+              />
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+              <label class="form-label" for="newLastName">Apellido</label>
+              <input
+                id="newLastName"
+                type="text"
+                class="form-control"
+                [(ngModel)]="newUser.lastName"
+                name="newLastName"
+                required
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="newEmail">Email</label>
+              <input
+                id="newEmail"
+                type="email"
+                class="form-control"
+                [(ngModel)]="newUser.email"
+                name="newEmail"
+                required
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="newPassword">Contraseña</label>
+              <input
+                id="newPassword"
+                type="password"
+                class="form-control"
+                [(ngModel)]="newUser.password"
+                name="newPassword"
+                required
+                minlength="8"
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="newStatus">Estado</label>
+              <select
+                id="newStatus"
+                class="form-select"
+                [(ngModel)]="newUser.status"
+                name="newStatus"
+              >
+                <option value="active">Activo</option>
+                <option value="pending">Pendiente</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="newRole">Rol</label>
+              <select
+                id="newRole"
+                class="form-select"
+                [(ngModel)]="newUser.role"
+                name="newRole"
+                required
+              >
+                @for (role of creatableRoles; track role) {
+                  <option [value]="role">{{ roleLabel(role) }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="newTenant">Tenant</label>
+              <select
+                id="newTenant"
+                class="form-select"
+                [(ngModel)]="newUser.tenantId"
+                name="newTenant"
+              >
+                <option value="">Sin tenant</option>
+                @for (tenant of tenants; track tenant._id) {
+                  <option [value]="tenant._id">{{ tenant.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary" [disabled]="saving">
+              {{ saving ? 'Guardando...' : 'Crear' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="cancelCreate()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      }
+
       <div class="table-responsive">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
               <th>Nombre</th>
               <th>Email</th>
+              <th>Rol</th>
               <th>Estado</th>
               <th class="text-end">Acciones</th>
             </tr>
@@ -102,6 +235,9 @@
               <tr>
                 <td>{{ user.firstName }} {{ user.lastName }}</td>
                 <td>{{ user.email }}</td>
+                <td>
+                  <span class="badge {{ roleBadge(user.role) }}">{{ roleLabel(user.role) }}</span>
+                </td>
                 <td><span class="badge {{ badge(user.status) }}">{{ label(user.status) }}</span></td>
                 <td class="text-end">
                   @if (user.status === 'pending') {
@@ -125,7 +261,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="4" class="text-center text-body-secondary py-4">
+                <td colspan="5" class="text-center text-body-secondary py-4">
                   {{ loading ? 'Cargando...' : 'No hay usuarios para este filtro.' }}
                 </td>
               </tr>
