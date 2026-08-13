@@ -57,7 +57,8 @@
     <ul cDropdownMenu class="pt-0 w-auto">
       <li>
         <h6 cDropdownHeader class="bg-body-secondary text-body-secondary fw-semibold py-2 rounded-top">
-          Account
+          <span class="d-block">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+          <span class="fw-normal small">{{ user()?.email }}</span>
         </h6>
       </li>
       <li>
@@ -82,10 +83,10 @@
         </a>
       </li>
       <li>
-        <a cDropdownItem routerLink="">
+        <button cDropdownItem type="button" (click)="onLogout()">
           <svg cIcon class="me-2" name="cilAccountLogout"></svg>
           Logout
-        </a>
+        </button>
       </li>
     </ul>
   </c-dropdown>

@@ -1,0 +1,99 @@
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
+
+import { environment } from '../../environments/environment';
+
+export interface AuthUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  expiresIn: number;
+  user: AuthUser;
+}
+
+export interface RegisterPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+const TOKEN_KEY = 'smartcomanda_admin_token';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  readonly #http = inject(HttpClient);
+  readonly #router = inject(Router);
+
+  readonly #user = signal<AuthUser | null>(null);
+  readonly user = this.#user.asReadonly();
+
+  #profileLoading = false;
+
+  get token(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  isAuthenticated(): boolean {
+    return this.token !== null;
+  }
+
+  setToken(token: string | null): void {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+      this.#user.set(null);
+    }
+  }
+
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.#http.post<AuthResponse>(`${environment.apiUrl}/api/auth/login`, {
+      email,
+      password
+    });
+  }
+
+  register(payload: RegisterPayload): Observable<AuthUser> {
+    return this.#http.post<AuthUser>(`${environment.apiUrl}/api/auth/register`, payload);
+  }
+
+  me(): Observable<AuthUser> {
+    return this.#http.get<AuthUser>(`${environment.apiUrl}/api/auth/me`);
+  }
+
+  logout(): Observable<void> {
+    return this.#http.post<void>(`${environment.apiUrl}/api/auth/logout`, {});
+  }
+
+  loadProfile(): void {
+    if (!this.isAuthenticated() || this.#user() !== null || this.#profileLoading) {
+      return;
+    }
+
+    this.#profileLoading = true;
+
+    this.me().subscribe({
+      next: (user) => this.#user.set(user),
+      error: () => {},
+      complete: () => {
+        this.#profileLoading = false;
+      }
+    });
+  }
+
+  clearSessionAndRedirect(): void {
+    this.setToken(null);
+    void this.#router.navigate(['/login']);
+  }
+}

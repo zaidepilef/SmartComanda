@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { ChartOptions, ChartType } from 'chart.js';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
+
+import { AuthService } from '../../auth/auth.service';
 
 interface IStatCard {
   title: string;
@@ -35,6 +37,13 @@ interface IStatCard {
   ]
 })
 export class DashboardComponent {
+  readonly #authService = inject(AuthService);
+  readonly user = this.#authService.user;
+
+  constructor() {
+    this.#authService.loadProfile();
+  }
+
   public statCards: IStatCard[] = [
     { title: 'Pedidos hoy', value: '42', icon: 'cilBasket', color: 'primary' },
     { title: 'Ingresos del día', value: '$386.500', icon: 'cilDollar', color: 'success' },
