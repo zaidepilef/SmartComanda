@@ -15,7 +15,15 @@ The system SHALL provide a login page at `/login`, outside the main layout, that
 
 #### Scenario: Failed login
 - **WHEN** a user submits unknown credentials on the login page
-- **THEN** the system shows the backend error message and does not store any token.
+- **THEN** the system shows a localized Spanish error message for invalid credentials, indicating the password is wrong or the email is not registered, and does not store any token.
+
+#### Scenario: Pending account login attempt
+- **WHEN** a user with a pending-verification account submits correct credentials on the login page
+- **THEN** the system shows a localized Spanish message indicating the account awaits internal verification and does not store any token.
+
+#### Scenario: Blocked account login attempt
+- **WHEN** a user with an inactive (blocked) account submits correct credentials on the login page
+- **THEN** the system shows a localized Spanish message indicating the account is blocked and does not store any token.
 
 #### Scenario: Authenticated user visits the login page
 - **WHEN** an already authenticated user navigates to `/login`
@@ -30,11 +38,11 @@ The system SHALL provide a registration page at `/register`, outside the main la
 
 #### Scenario: Duplicate email
 - **WHEN** a user submits a registration payload whose email already exists
-- **THEN** the system shows the backend error message and stays on the registration page.
+- **THEN** the system shows a localized Spanish error message and stays on the registration page.
 
 #### Scenario: Invalid registration payload
 - **WHEN** a user submits a registration payload with missing, invalid, or weak fields
-- **THEN** the system shows the backend error message and stays on the registration page.
+- **THEN** the system shows a localized Spanish error message and stays on the registration page.
 
 #### Scenario: Passwords do not match
 - **WHEN** a user submits a registration payload whose password confirmation differs from the password
@@ -46,7 +54,7 @@ The system SHALL provide a registration page at `/register`, outside the main la
 
 #### Scenario: Turnstile rejected by backend
 - **WHEN** the backend rejects the submitted Turnstile token
-- **THEN** the system shows the backend error message, resets the Turnstile widget, and stays on the registration page.
+- **THEN** the system shows a localized Spanish error message, resets the Turnstile widget, and stays on the registration page.
 
 ### Requirement: Token storage
 The system SHALL persist the JWT locally so the user stays authenticated across page reloads, and SHALL remove it on logout.
