@@ -38,7 +38,7 @@ See proposal.md - Why for motivation. Current state detected in the repository (
 5. **Fail-fast startup + liveness health check.** On boot, connect with `serverSelectionTimeoutMS: 5000`; on failure log a clear error and `process.exit(1)` (never serve "half-degraded" API). Keep state in the connection module; listen to driver server events (`'close'`/`'error'`) to update a live state used by `GET /health` → 200 `{ status: "ok", database: "connected" }`, or 503 `{ status: "degraded", database: "disconnected" }` when the connection drops at runtime. The route runs a `ping` command with timeout so the check reflects reality, not a cached flag.
 
 6. **Backup/restore via Docker tooling only (KISS, no host installs).**
-   - Local ⇄ backup: `docker compose exec mongodb mongodump --uri "mongodb://localhost:27017" --archive:/backups/... --db smartcomanda` (tools ship inside the image; the named volume mount `/backups` into the container).
+   - Local ⇄ backup: `docker compose exec mongodb mongodump --uri "mongodb://localhost:27017" --archive:/backups/... --db smartcomanda` (tools ship inside the image; the `./backups:/backups` host bind mount exposes the archives to the container).
    - Atlas ⇄ backup: one-off container `docker run --rm -v "$PWD/backups:/backups" mongo:8 mongodump --uri "$ATLAS_MONGODB_URI" --archive:/backups/atlas-<date>.archive` (and the mirror `mongorestore`), so credentials never touch the host shell history and work on any machine.
    - Restores require an explicit confirmation step (prompt `--yes`/`--force`) and are clearly marked DESTRUCTIVE in help text.
    - Alternatives considered: host-installed mongodump (rejected — extra dependency, version drift); `mongosh`-based export (rejected — dump archive is the restore target); a fifth tool like `mongoexport` (rejected — per-collection, loses metadata).
@@ -78,7 +78,7 @@ See proposal.md - Why for motivation. Current state detected in the repository (
    ```
    `server.js` currently handles listen — it gains a startup sequence: load config → connect db → start listen; and graceful shutdown (SIGTERM/SIGINT → close db → exit). No business route touched.
 
-10. **Testing with zero new deps:** Node's built-in test runner (`node --test`, ESM-friendly) for unit tests (config resolution, health route responses with a mocked/fake connection state) and shell scripts `scripts/test-*.sh` for integration scenarios (docker start/healthy, volume persistence across restart, backend connect, `/health` result, insert→find round-trip via `mongosh`. dump→restore round-trip, `.env` absent from `git ls-files`, and Atlas-only switch documented as a **manual** test since no real Atlas credentials can live in the repo).
+10. **Testing with zero new deps:** Node's built-in test runner (`node --test`, ESM-friendly) for unit tests (config resolution, health route responses with a mocked/fake connection state) and integration scripts under `scripts/test/` (docker start/healthy, volume persistence across restart, backend connect, `/health` result, insert→find round-trip via `mongosh`, dump→restore round-trip, `.env` absent from `git ls-files`, and Atlas-only switch documented as a **manual** test since no real Atlas credentials can live in the repo).
 
 ## Risks / Trade-offs
 
