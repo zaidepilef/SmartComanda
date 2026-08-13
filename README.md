@@ -63,4 +63,15 @@ Listo para que tus clientes pidan en uno demasiado clics.
 
 ---
 
+## Variables de entorno (registro con verificación)
+
+El registro público usa Cloudflare Turnstile ("no soy un robot") y deja la cuenta en estado `pending` hasta que un usuario del panel la apruebe.
+
+- **Backend** (`.env` raíz): `TURNSTILE_SECRET_KEY` — clave secreta del sitio Turnstile.
+- **Frontend** (`frontend-admin/src/environments/`): `turnstileSiteKey` — clave pública del sitio (`.ts` de desarrollo y producción).
+
+Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separado en el dashboard de Cloudflare para `localhost` y para cada dominio de producción. Para desarrollo local se puede usar la clave de prueba oficial que siempre acepta: site `1x00000000000000000000AA` y secret `1x0000000000000000000000000000000AA`.
+
+---
+
 *SmartComanda: tu restaurante, siempre abierto para pedir.*

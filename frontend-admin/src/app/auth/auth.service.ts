@@ -26,9 +26,24 @@ export interface RegisterPayload {
   lastName: string;
   email: string;
   password: string;
+  captchaToken: string;
 }
 
 const TOKEN_KEY = 'smartcomanda_admin_token';
+
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  'Invalid credentials.': 'Credenciales inválidas. Verifica tu email y contraseña.',
+  'This account awaits verification.':
+    'Tu cuenta está pendiente de verificación interna.',
+  'This account is inactive.': 'Tu cuenta está bloqueada.',
+  'Captcha verification failed.': 'La verificación de seguridad falló. Intenta nuevamente.'
+};
+
+const GENERIC_ERROR_MESSAGE = 'No se pudo completar la operación. Intenta nuevamente.';
+
+export function authErrorMessage(raw: string | undefined): string {
+  return (raw && AUTH_ERROR_MESSAGES[raw]) || GENERIC_ERROR_MESSAGE;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

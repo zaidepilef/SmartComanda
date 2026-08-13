@@ -38,6 +38,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'users',
+        loadComponent: () => import('./views/users/users.component').then((m) => m.UsersComponent),
+        data: {
+          title: 'Usuarios'
+        }
+      },
+      {
         path: 'tables',
         loadComponent: () => import('./views/tables/tables.component').then((m) => m.TablesComponent),
         data: {

@@ -7,7 +7,7 @@ Provides a complete CRUD API for the user entity backed by MongoDB, with version
 ## Requirements
 
 ### Requirement: User entity persisted in MongoDB
-The system SHALL persist users in a `users` collection in MongoDB with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive), `createdAt`, and `updatedAt`.
+The system SHALL persist users in a `users` collection in MongoDB with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive/pending), `createdAt`, and `updatedAt`.
 
 #### Scenario: Creating a user persists all fields
 - **WHEN** a valid user is created through the API
@@ -16,6 +16,14 @@ The system SHALL persist users in a `users` collection in MongoDB with the follo
 #### Scenario: Email is unique
 - **WHEN** a user is created or updated with an email that already belongs to another user
 - **THEN** the operation fails with a conflict error and no duplicate email is stored.
+
+#### Scenario: Public registration creates a pending user
+- **WHEN** a user is created through the public registration endpoint
+- **THEN** the user is stored with `pending` status.
+
+#### Scenario: Listing users by pending status
+- **WHEN** an authenticated client GETs `/api/users?status=pending`
+- **THEN** the API responds only with users whose status is `pending`.
 
 ### Requirement: CRUD API for users
 The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system.

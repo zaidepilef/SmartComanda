@@ -21,12 +21,20 @@ The system SHALL provide a login endpoint that verifies a user's email and passw
 - **WHEN** a client POSTs valid credentials for a user whose status is not active
 - **THEN** the API responds with HTTP 403 and no token is issued.
 
+#### Scenario: Pending user cannot log in
+- **WHEN** a client POSTs valid credentials for a user whose status is `pending`
+- **THEN** the API responds with HTTP 403, a message indicating the account awaits verification, and no token is issued.
+
 ### Requirement: Registration endpoint
-The system SHALL provide a registration endpoint that creates a new user through the existing user service.
+The system SHALL provide a registration endpoint that creates a new user through the existing user service, protected by a Turnstile anti-bot check.
 
 #### Scenario: Registering a new user
-- **WHEN** a client POSTs a valid registration payload (name, email, password) to the registration endpoint
-- **THEN** the API creates the user with a hashed password and responds with HTTP 201 and the public user profile without the password hash.
+- **WHEN** a client POSTs a valid registration payload (name, email, password, Turnstile token) to the registration endpoint
+- **THEN** the API verifies the Turnstile token with the provider, creates the user with a hashed password and `pending` status, and responds with HTTP 201 and the public user profile without the password hash.
+
+#### Scenario: Missing or invalid Turnstile token
+- **WHEN** a client POSTs a registration payload without a Turnstile token or with an invalid token
+- **THEN** the API responds with HTTP 400 and no user is created.
 
 #### Scenario: Duplicate email on registration
 - **WHEN** a client POSTs a registration payload whose email already belongs to another user

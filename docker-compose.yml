@@ -66,6 +66,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
       MONGODB_URI: mongodb://mongodb:27017/smartcomanda
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
 
     ports:
       - "3000:3000"

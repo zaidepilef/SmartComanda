@@ -1,12 +1,32 @@
-import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, viewChild } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { AuthService } from '../../auth.service';
+import { AuthService, authErrorMessage } from '../../auth.service';
+import { TurnstileComponent } from '../../components/turnstile/turnstile.component';
+
+function mustMatch(passwordKey: string, confirmKey: string) {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const password = control.get(passwordKey)?.value;
+    const confirm = control.get(confirmKey)?.value;
+
+    if (password && confirm && password !== confirm) {
+      return { mismatch: true };
+    }
+
+    return null;
+  };
+}
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TurnstileComponent],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {
@@ -14,24 +34,43 @@ export class RegisterComponent {
   readonly #authService = inject(AuthService);
   readonly #router = inject(Router);
 
-  readonly form = this.#fb.nonNullable.group({
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]]
-  });
+  private readonly turnstile = viewChild.required(TurnstileComponent);
+
+  readonly form = this.#fb.nonNullable.group(
+    {
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required]
+    },
+    { validators: mustMatch('password', 'confirmPassword') }
+  );
 
   error = '';
   loading = false;
+  registered = false;
 
   constructor() {
     if (this.#authService.isAuthenticated()) {
       void this.#router.navigate(['/dashboard']);
     }
+
+    this.form.controls.password.valueChanges.subscribe(() => {
+      this.form.controls.confirmPassword.updateValueAndValidity();
+    });
+  }
+
+  get captchaToken(): string | null {
+    return this.turnstile().token();
+  }
+
+  get canSubmit(): boolean {
+    return this.form.valid && this.captchaToken !== null && !this.loading;
   }
 
   submit(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.captchaToken === null) {
       return;
     }
 
@@ -41,14 +80,15 @@ export class RegisterComponent {
     const { firstName, lastName, email, password } = this.form.getRawValue();
 
     this.#authService
-      .register({ firstName, lastName, email, password })
+      .register({ firstName, lastName, email, password, captchaToken: this.captchaToken })
       .subscribe({
         next: () => {
-          void this.#router.navigate(['/login']);
+          this.registered = true;
         },
         error: (err) => {
           this.loading = false;
-          this.error = err.error?.error ?? 'No se pudo crear la cuenta. Intenta nuevamente.';
+          this.error = authErrorMessage(err.error?.error);
+          this.turnstile().reset();
         }
       });
   }
