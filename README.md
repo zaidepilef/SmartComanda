@@ -74,4 +74,43 @@ Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separa
 
 ---
 
+## Backups de MongoDB
+
+Los backups se generan con `mongodump`/`mongorestore` (herramientas oficiales) hacia la carpeta `backups/` de la raíz del proyecto (montada como `/backups` dentro del contenedor, gitignored). Todos los comandos tienen alias npm en `backend/` (`npm run db:*`).
+
+### Lifecycle
+
+```bash
+npm run db:up        # iniciar el servicio mongodb
+npm run db:down      # detener el servicio mongodb (los datos persisten)
+npm run db:status    # estado del contenedor, healthcheck y ping de conectividad
+```
+
+### Backup y restore LOCAL
+
+```bash
+npm run db:backup:local                    # crea backups/smartcomanda-local-<timestamp>.archive
+npm run db:restore:local                   # restaura el archive local más reciente
+npm run db:restore:local -- <archivo>      # restaura un archive específico (ruta relativa a backups/)
+```
+
+### Backup y restore ATLAS
+
+Requiere `ATLAS_MONGODB_URI` en el `.env` raíz (las credenciales nunca se guardan en el repositorio; el URI solo lo usan los scripts, nunca la app).
+
+```bash
+npm run db:backup:atlas                    # crea backups/smartcomanda-atlas-<timestamp>.archive
+npm run db:restore:atlas                   # restaura el archive Atlas más reciente
+npm run db:restore:atlas -- <archivo>      # restaura un archive específico
+```
+
+### DESTRUCTIVO — leer antes de restaurar
+
+- **Restaurar sobreescribe los datos existentes**: el restore hace `--drop` (elimina las colecciones antes de restaurar). No se puede deshacer.
+- Todos los restores piden confirmación explícita (escribir `yes`). Para uso no interactivo: `--yes`/`--force`.
+- **Se recomienda hacer un backup justo antes de cualquier restore.**
+- **Esto NO es sincronización ni replicación**: es un proceso manual de una sola vía (LOCAL ⇄ archive ⇄ ATLAS). No existe sync automático bidireccional.
+
+---
+
 *SmartComanda: tu restaurante, siempre abierto para pedir.*
