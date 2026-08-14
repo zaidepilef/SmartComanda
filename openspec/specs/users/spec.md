@@ -7,7 +7,7 @@ Provides a complete CRUD API for the user entity backed by MongoDB, with version
 ## Requirements
 
 ### Requirement: User entity persisted in MongoDB
-The system SHALL persist users in a `users` collection in MongoDB with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive/pending), `createdAt`, and `updatedAt`.
+The system SHALL persist users in a `users` collection in MongoDB with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive/pending), `createdAt`, and `updatedAt`. The system SHALL also persist `role` (one of `sysadmin`, `owner`, `admin`, `cashier`) and, when assigned, `tenantId` (reference to an existing tenant), `name` (optional display name), and timestamps.
 
 #### Scenario: Creating a user persists all fields
 - **WHEN** a valid user is created through the API
@@ -25,12 +25,28 @@ The system SHALL persist users in a `users` collection in MongoDB with the follo
 - **WHEN** an authenticated client GETs `/api/users?status=pending`
 - **THEN** the API responds only with users whose status is `pending`.
 
+#### Scenario: Creating a user with role and tenant
+- **WHEN** an authenticated `sysadmin` creates a user providing `role` and `tenantId`
+- **THEN** the user is stored with those values and returned without the password hash.
+
+#### Scenario: Rejecting an unknown role
+- **WHEN** a user is created or updated with a `role` other than `sysadmin`, `owner`, `admin`, or `cashier`
+- **THEN** the API responds with HTTP 400 and no user is created or modified.
+
+#### Scenario: Rejecting a nonexistent tenant
+- **WHEN** a user is created or updated with a `tenantId` that does not reference an existing tenant
+- **THEN** the API responds with HTTP 400 and no user is created or modified.
+
 ### Requirement: CRUD API for users
-The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system.
+The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system. Create, update, and delete operations SHALL be restricted to users with the `sysadmin` role.
 
 #### Scenario: Creating a user
-- **WHEN** an authenticated client POSTs a valid user payload to `/api/users`
+- **WHEN** an authenticated `sysadmin` POSTs a valid user payload to `/api/users`
 - **THEN** the API creates the user and responds with HTTP 201 and the created user without the password hash.
+
+#### Scenario: Creating a user without sysadmin role
+- **WHEN** a user whose role is not `sysadmin` POSTs to `/api/users`
+- **THEN** the API responds with HTTP 403 and no user is created.
 
 #### Scenario: Reading a user
 - **WHEN** an authenticated client GETs `/api/users/:id` with an existing user id
@@ -41,11 +57,15 @@ The system SHALL expose REST endpoints under `/api/users` to create, read, updat
 - **THEN** the API responds with HTTP 404 and an error message.
 
 #### Scenario: Updating a user
-- **WHEN** an authenticated client PUTs a valid payload to `/api/users/:id` for an existing user
+- **WHEN** an authenticated `sysadmin` PUTs a valid payload to `/api/users/:id` for an existing user
 - **THEN** the API updates the user, returns HTTP 200 with the updated user without the password hash, and refreshes `updatedAt`.
 
+#### Scenario: Updating a user without sysadmin role
+- **WHEN** a user whose role is not `sysadmin` PUTs to `/api/users/:id`
+- **THEN** the API responds with HTTP 403 and no user is modified.
+
 #### Scenario: Deleting a user
-- **WHEN** an authenticated client DELETEs `/api/users/:id` with an existing user id
+- **WHEN** an authenticated `sysadmin` DELETEs `/api/users/:id` with an existing user id
 - **THEN** the API removes the user and responds with HTTP 204.
 
 #### Scenario: Deleting a nonexistent user
@@ -107,3 +127,11 @@ The system SHALL run versioned MongoDB migrations at backend startup, applying p
 #### Scenario: Ensuring the email unique index
 - **WHEN** migrations have run on an empty database
 - **THEN** a unique index exists on the `users.email` field and an index exists on the `users.status` field.
+
+#### Scenario: Backfilling initial roles
+- **WHEN** the role backfill migration runs on a database with existing users and no `role` field
+- **THEN** the user matching `SYSADMIN_EMAIL` gets `role: sysadmin` and the other existing active users get `role: owner`, and the migration is recorded in the `migrations` collection.
+
+#### Scenario: Backfill respects SYSADMIN_EMAIL configuration
+- **WHEN** the role backfill migration runs
+- **THEN** the account promoted to `sysadmin` is the one whose email equals `SYSADMIN_EMAIL` (default `fel.di.rod@gmail.com`).
