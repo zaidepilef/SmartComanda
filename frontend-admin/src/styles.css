@@ -1,9 +1,9 @@
-@use "tailwindcss";
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@source "../app";
-@source "../index.html";
+@source "./app";
+@source "./index.html";
 
 html {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,

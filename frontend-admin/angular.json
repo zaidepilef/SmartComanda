@@ -30,7 +30,7 @@
               }
             ],
             "styles": [
-              "src/scss/styles.scss"
+              "src/styles.css"
             ],
             "security": {
               "allowedHosts": []
