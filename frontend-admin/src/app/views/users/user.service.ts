@@ -8,7 +8,7 @@ export type UserStatus = 'active' | 'inactive' | 'pending';
 
 export type UserRole = 'sysadmin' | 'owner' | 'admin' | 'cashier';
 
-export const CREATABLE_ROLES: UserRole[] = ['owner', 'admin', 'cashier'];
+export const CREATABLE_ROLES: UserRole[] = ['sysadmin', 'owner', 'admin', 'cashier'];
 
 export interface User {
   _id: string;
@@ -60,10 +60,13 @@ export class UserService {
   readonly #http = inject(HttpClient);
 
   list(params: { page?: number; limit?: number; status?: string }): Observable<UserListResponse> {
-    const httpParams = new HttpParams()
+    let httpParams = new HttpParams()
       .set('page', String(params.page ?? 1))
-      .set('limit', String(params.limit ?? 10))
-      .set('status', params.status ?? '');
+      .set('limit', String(params.limit ?? 10));
+
+    if (params.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
 
     return this.#http.get<UserListResponse>(`${environment.apiUrl}/api/users`, {
       params: httpParams,

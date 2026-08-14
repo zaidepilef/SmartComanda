@@ -63,7 +63,26 @@ Listo para que tus clientes pidan en uno demasiado clics.
 
 ---
 
-## Variables de entorno (registro con verificación)
+## Variables de entorno
+
+Todo se configura desde `.env` en la raíz del proyecto (la plantilla está en `.env.example`). **Nunca comitear un `.env` real.**
+
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `PORT` | Sí | Puerto de la API (default `3000`) |
+| `BACKEND_URL` | Sí | URL pública del backend |
+| `FRONTEND_URL` | Sí | URL pública del frontend |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Sí | Credenciales de PostgreSQL |
+| `JWT_SECRET` | Sí | Firma de tokens JWT, mínimo 32 caracteres (`openssl rand -base64 48`) |
+| `JWT_EXPIRES_IN` | No | Expiración de tokens (default `1h`) |
+| `N8N_EMAIL` / `N8N_PASSWORD` | Sí | Credenciales de n8n |
+| `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` | Sí | Credenciales de pgAdmin |
+| `MONGODB_URI` | No | URI de MongoDB de la app (default `mongodb://localhost:27017/smartcomanda`). Cambia a Atlas sin tocar código |
+| `MONGODB_PORT` | No | Puerto host de MongoDB (default `27017`) |
+| `ATLAS_MONGODB_URI` | No | URI de Atlas **solo para los scripts de backup/restore** — la app nunca la lee |
+| `TURNSTILE_SECRET_KEY` | No | Clave secreta Cloudflare Turnstile (registro con verificación) |
+
+### Registro con verificación (Turnstile)
 
 El registro público usa Cloudflare Turnstile ("no soy un robot") y deja la cuenta en estado `pending` hasta que un usuario del panel la apruebe.
 
@@ -71,6 +90,102 @@ El registro público usa Cloudflare Turnstile ("no soy un robot") y deja la cuen
 - **Frontend** (`frontend-admin/src/environments/`): `turnstileSiteKey` — clave pública del sitio (`.ts` de desarrollo y producción).
 
 Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separado en el dashboard de Cloudflare para `localhost` y para cada dominio de producción. Para desarrollo local se puede usar la clave de prueba oficial que siempre acepta: site `1x00000000000000000000AA` y secret `1x0000000000000000000000000000000AA`.
+
+---
+
+## Stack y servicios
+
+| Servicio | URL | Descripción |
+|---|---|---|
+| Panel de administración | http://localhost:4200 | Frontend Angular (frontend-admin) |
+| API | http://localhost:3000 | Backend Node.js/Express (`GET /health` para estado) |
+| PostgreSQL | localhost:5432 | Base de datos principal (Postgres) |
+| MongoDB | localhost:27017 | Base de datos de negocio (MongoDB, solo localhost) |
+| pgAdmin | http://localhost:8080 | Administrador visual de PostgreSQL |
+| n8n | http://localhost:5678 | Automatizaciones/Workflows |
+
+---
+
+## Requisitos previos
+
+- **Docker** con Docker Compose v2.
+- **Node.js 20+** (solo para desarrollo fuera de Docker; opcional si todo corre en contenedores).
+- **Git**.
+- Un archivo `.env` en la raíz del proyecto (ver [Variables de entorno](#variables-de-entorno)).
+
+---
+
+## Setup local
+
+1. Clonar el repositorio.
+2. Crear el `.env` desde la plantilla y completar los valores:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Levantar toda la infraestructura:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. Verificar el estado de la API y sus dependencias:
+
+   ```bash
+   curl http://localhost:3000/health
+   # => { "status": "ok", "database": "connected" }
+   ```
+
+   El panel queda disponible en http://localhost:4200.
+
+### Comandos útiles
+
+```bash
+docker compose up -d --build          # levantar todo
+docker compose logs -f api            # logs del backend
+docker compose logs -f angular_admin  # logs del panel
+docker compose down                   # detener todo (los volúmenes persisten)
+```
+
+Para correr el backend fuera de Docker (desarrollo rápido con hot-reload):
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+---
+
+## MongoDB
+
+MongoDB corre en el contenedor `smartcomanda_mongodb` (imagen oficial `mongo:8`, puerto `27017` solo accesible desde localhost).
+
+### Conexión con MongoDB Compass
+
+- **Local:** `mongodb://localhost:27017/smartcomanda`
+- **Atlas (remoto):** `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<db>` — el cluster debe tener tu IP habilitada en *Network Access*.
+
+### Cambiar entre local y Atlas (solo configuración)
+
+La app usa una única variable `MONGODB_URI`. Para apuntar a Atlas, cambiarla en `.env` y reiniciar el contenedor `api`:
+
+```bash
+# .env
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/smartcomanda
+```
+
+```bash
+docker compose up -d --build api
+```
+
+### Setup de MongoDB Atlas (primer uso)
+
+1. Crear un **cluster free** (M0) en https://www.mongodb.com/atlas.
+2. Crear un **database user** con contraseña (guardar las credenciales fuera del repositorio).
+3. En **Network Access**, agregar tu IP (o `0.0.0.0/0` solo para desarrollo; **nunca** en producción).
+4. Copiar la cadena de conexión y ponerla en `ATLAS_MONGODB_URI` (para backups) o `MONGODB_URI` (para que la app la use). Nunca comitear credenciales reales.
 
 ---
 

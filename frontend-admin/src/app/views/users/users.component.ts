@@ -36,7 +36,8 @@ interface NewUserForm {
   email: string;
   password: string;
   status: UserStatus;
-  role: Exclude<UserRole, 'sysadmin'>;
+  //role: Exclude<UserRole, 'sysadmin'>;
+  role:UserRole;
   tenantId: string;
 }
 
@@ -77,6 +78,7 @@ export class UsersComponent  implements OnInit {
 
   ngOnInit(): void {
     this.#load();
+    this.#loadTenants();
   }
 
   #load(): void {
