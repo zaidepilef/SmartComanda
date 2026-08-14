@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Sanguchón</title>
+<style>
+:root{
+  --bg:#1a1d22;
+  --bg2:#23272e;
+  --panel:#2b3038;
+  --panel2:#313741;
+  --border:#3a414c;
+  --text:#eef1f5;
+  --muted:#9aa4b1;
+  --accent:#e63946;
+  --accent2:#ff9f1c;
+  --ok:#2a9d8f;
+  --ok2:#1f7a6f;
+  --danger:#c1121f;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Segoe UI',Roboto,system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:15px;overflow:hidden;
+  -webkit-user-select:none;user-select:none;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);border-bottom:2px solid var(--accent);
+  padding:8px 14px;height:58px;flex-shrink:0;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{
+  background:var(--accent);color:#fff;font-weight:800;font-size:18px;
+  padding:6px 10px;border-radius:8px;letter-spacing:1px;
+}
+.brand .sub{font-size:11px;color:var(--muted);line-height:1.1}
+.brand .sub b{color:var(--text)}
+.header-right{display:flex;align-items:center;gap:12px}
+.clock{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.cash-badge{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ok)}
+.cash-badge .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.header-nav{display:flex;gap:6px}
+.header-nav button{
+  padding:8px 12px;border-radius:8px;font-size:14px;font-weight:600;
+  background:var(--panel);border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;gap:6px;transition:.15s;
+}
+.header-nav button:hover{background:var(--panel2);color:var(--text)}
+.header-nav button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* LAYOUT */
+.main{flex:1;display:flex;overflow:hidden}
+.cats{
+  width:160px;background:var(--bg2);border-right:1px solid var(--border);
+  padding:10px;overflow-y:auto;flex-shrink:0;
+}
+.cats h3{font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:4px 6px 8px}
+.cat-btn{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:10px 8px;margin-bottom:4px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--muted);
+  background:transparent;border:1px solid transparent;text-align:left;
+}
+.cat-btn .ci{font-size:18px}
+.cat-btn:hover{background:var(--panel)}
+.cat-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.products{
+  flex:1;display:flex;flex-direction:column;min-width:0;
+  background:var(--bg);overflow:hidden;
+}
+.search-wrap{padding:10px 12px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.search-wrap input{
+  flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--panel);color:var(--text);font-size:15px;outline:none;
+}
+.search-wrap input:focus{border-color:var(--accent)}
+.grid-wrap{flex:1;overflow-y:auto;padding:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+
+.card{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;transition:.15s;
+}
+.card:hover{border-color:var(--accent2);transform:translateY(-2px)}
+.card .img{
+  height:78px;display:flex;align-items:center;justify-content:center;font-size:42px;
+  background:linear-gradient(135deg,var(--panel2),var(--bg2));
+  position:relative;
+}
+.card .stock{
+  position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:20px;letter-spacing:.5px;
+}
+.card .stock.ok{background:var(--ok);color:#fff}
+.card .stock.no{background:var(--danger);color:#fff}
+.card .body{padding:8px 10px;flex:1;display:flex;flex-direction:column;gap:2px}
+.card .name{font-size:14px;font-weight:700}
+.card .desc{font-size:11px;color:var(--muted);flex:1}
+.card .price{font-size:16px;font-weight:800;color:var(--accent2);margin-top:4px}
+.card .add-btn{
+  margin-top:8px;padding:8px;border-radius:8px;font-weight:700;font-size:13px;
+  background:var(--ok);color:#fff;
+}
+.card .add-btn:hover{background:var(--ok2)}
+.card .add-btn:disabled{background:#3a414c;color:var(--muted);cursor:not-allowed}
+.card.no-stock{opacity:.55}
+
+/* ORDER PANEL */
+.order{
+  width:340px;background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.order-head{padding:10px 14px;border-bottom:1px solid var(--border)}
+.order-head .num{font-size:18px;font-weight:800;color:var(--accent2)}
+.order-head .cust{font-size:12px;color:var(--muted)}
+.order-items{flex:1;overflow-y:auto;padding:10px 12px}
+.oitem{
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:8px 10px;margin-bottom:8px;
+}
+.oitem .top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.oitem .qty-name{font-size:14px;font-weight:700}
+.oitem .qty-name .q{color:var(--accent2);margin-right:6px}
+.oitem .subs{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.oitem .total{font-size:15px;font-weight:800;margin-top:4px}
+.oitem .actions{display:flex;gap:4px;margin-top:6px}
+.oitem .actions button{flex:1;padding:5px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid var(--border)}
+.oitem .actions .minus{background:var(--panel2)}
+.oitem .actions .plus{background:var(--ok);color:#fff}
+.oitem .actions .edit{background:var(--panel2)}
+.oitem .actions .del{background:var(--danger);color:#fff}
+.order-summary{padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2)}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:2px}
+.sum-row.total{font-size:20px;font-weight:800;color:var(--text);border-top:1px solid var(--border);padding-top:6px;margin-top:4px}
+.sum-row.total .v{color:var(--accent2)}
+.order-btns{display:flex;gap:8px;margin-top:8px}
+.order-btns .cancel{flex:1;padding:11px;border-radius:8px;font-weight:700;background:var(--panel);border:1px solid var(--border);color:var(--muted)}
+.order-btns .cancel:hover{background:var(--panel2)}
+.order-btns .charge{flex:2;padding:11px;border-radius:8px;font-weight:800;font-size:15px;background:var(--accent);color:#fff}
+.order-btns .charge:hover{filter:brightness(1.1)}
+.order-btns .charge:disabled{background:#3a414c;color:var(--muted);cursor:not-allowed}
+.order-empty{color:var(--muted);text-align:center;font-size:13px;margin-top:40px}
+
+/* VIEWS (secondary screens) */
+.view{display:none;flex:1;overflow-y:auto;padding:16px}
+.view.active{display:block}
+.view h2{font-size:22px;margin-bottom:12px}
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filters button{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:700;background:var(--panel);border:1px solid var(--border);color:var(--muted)}
+.filters button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.orders-table{background:var(--panel);border-radius:10px;overflow:hidden}
+.order-row{display:grid;grid-template-columns:110px 1fr 110px 1fr 90px;gap:8px;padding:10px 14px;align-items:center;border-bottom:1px solid var(--border)}
+.order-row.head{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.badge{font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px}
+.badge.new{background:var(--accent2);color:#111}
+.badge.preparing{background:var(--accent);color:#fff}
+.badge.ready{background:var(--ok);color:#fff}
+.badge.delivered{background:#457b9d;color:#fff}
+.badge.cancelled{background:var(--danger);color:#fff}
+.badge.paid{background:var(--ok);color:#fff}
+.badge.pending{background:#6c757d;color:#fff}
+
+/* KITCHEN */
+.kitchen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.kcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;border-top:4px solid var(--accent2)}
+.kcard .khead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.kcard .knum{font-size:16px;font-weight:800}
+.kcard .ktime{font-size:11px;color:var(--muted)}
+.kcard .kitems{font-size:14px;line-height:1.5;margin-bottom:8px}
+.kcard .kitems .sub{color:var(--muted);font-size:12px}
+.kstatus{display:flex;gap:4px;flex-wrap:wrap}
+.kstatus button{flex:1;font-size:11px;font-weight:700;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--panel2);color:var(--muted)}
+.kstatus button.active{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+/* CASH */
+.cash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.cash-card{background:var(--panel);border-radius:10px;padding:14px}
+.cash-card .lbl{font-size:12px;color:var(--muted)}
+.cash-card .val{font-size:22px;font-weight:800;margin-top:4px}
+.cash-total{background:var(--accent);color:#fff;border-radius:10px;padding:18px;text-align:center;margin-top:14px}
+.cash-total .lbl{font-size:13px}
+.cash-total .val{font-size:32px;font-weight:800}
+
+/* MODALS */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  display:none;align-items:center;justify-content:center;z-index:50;
+}
+.overlay.active{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  width:min(520px,94vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:var(--shadow);
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-size:18px}
+.modal-head .x{font-size:20px;color:var(--muted);padding:2px 8px;border-radius:6px}
+.modal-head .x:hover{background:var(--panel);color:var(--text)}
+.modal-body{padding:16px;overflow-y:auto}
+.modal-body .sec{margin-bottom:16px}
+.modal-body .sec>label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px}
+.opt{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--panel);margin-bottom:6px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.selected{border-color:var(--accent);background:rgba(230,57,70,.12)}
+.opt .opl{font-size:14px;font-weight:600}
+.opt .opp{font-size:13px;color:var(--accent2);font-weight:700}
+.opt .chk{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.opt.selected .chk{background:var(--accent);border-color:var(--accent)}
+.opt.selected .chk::after{content:"✓"}
+.opt input[type=text],.modal-body textarea{
+  width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);
+  background:var(--panel);color:var(--text);font-size:14px;outline:none;font-family:inherit;
+}
+.opt input[type=text]:focus,.modal-body textarea:focus{border-color:var(--accent)}
+.qty-row{display:flex;align-items:center;gap:10px;justify-content:center}
+.qty-row button{width:44px;height:44px;border-radius:8px;font-size:22px;font-weight:800;background:var(--panel);border:1px solid var(--border)}
+.qty-row button:hover{background:var(--panel2)}
+.qty-row .num{font-size:22px;font-weight:800;min-width:40px;text-align:center}
+.modal-foot{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.modal-foot .m-total{font-size:20px;font-weight:800}
+.modal-foot .m-total .lbl{font-size:12px;color:var(--muted);display:block;font-weight:600}
+.modal-foot .btn-primary{flex:1;padding:13px;border-radius:8px;font-size:16px;font-weight:800;background:var(--accent);color:#fff}
+.modal-foot .btn-primary:hover{filter:brightness(1.1)}
+.modal-foot .btn-primary:disabled{background:#3a414c;color:var(--muted);cursor:not-allowed}
+.btn-secondary{padding:13px 18px;border-radius:8px;font-weight:700;background:var(--panel);border:1px solid var(--border);color:var(--muted)}
+.btn-secondary:hover{background:var(--panel2);color:var(--text)}
+.btn-ok{padding:13px 18px;border-radius:8px;font-weight:800;font-size:15px;background:var(--ok);color:#fff}
+.btn-ok:hover{background:var(--ok2)}
+
+/* Payment */
+.pay-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.pay-grid button{
+  padding:16px 8px;border-radius:10px;border:1px solid var(--border);background:var(--panel);
+  font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.pay-grid button .pi{font-size:26px}
+.pay-grid button:hover{border-color:var(--accent)}
+.big-total{text-align:center;font-size:34px;font-weight:800;color:var(--accent2);margin:6px 0 14px}
+.big-total .lbl{font-size:13px;color:var(--muted);font-weight:600}
+.cash-input{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.cash-input input{flex:1;min-width:140px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:18px;outline:none}
+.quick-cash{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.quick-cash button{flex:1;min-width:64px;padding:10px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);font-weight:700}
+.quick-cash button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.return-box{background:var(--ok);color:#fff;border-radius:8px;padding:12px;text-align:center;font-size:18px;font-weight:800;margin:6px 0}
+.qr{width:160px;height:160px;margin:10px auto;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#222;font-weight:700;position:relative}
+.qr::after{content:"";position:absolute;inset:0;background:
+  conic-gradient(from 0deg,#000 25%,transparent 0 50%,#000 0 75%,transparent 0);
+  -webkit-mask:radial-gradient(circle 30px,#0000 98%,#000);mask:radial-gradient(circle 30px,#0000 98%,#000);
+  opacity:.85}
+.centered{text-align:center}
+.confirm-ico{font-size:52px;display:block;margin-bottom:8px}
+.success-total{font-size:36px;font-weight:800;color:var(--accent2);margin:4px 0}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.info-grid .ci2{background:var(--panel);border-radius:8px;padding:10px;text-align:center}
+.info-grid .ci2 .lbl{font-size:11px;color:var(--muted)}
+.info-grid .ci2 .val{font-size:18px;font-weight:800;margin-top:2px}
+
+/* TICKET */
+.ticket-body{background:#fff;color:#222;font-family:'Courier New',monospace;padding:14px;border-radius:8px;white-space:pre-wrap;line-height:1.35;font-size:13px}
+.ticket-body.center{text-align:center}
+.ticket-actions{display:flex;gap:8px;margin-top:10px}
+.ticket-actions button{flex:1;padding:12px;border-radius:8px;font-weight:800}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--ok);color:#fff;padding:12px 22px;border-radius:8px;font-weight:700;
+  box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:99;pointer-events:none;
+}
+.toast.show{opacity:1}
+
+@media print{
+  body>*{display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <span class="logo">SANGUCHÓN</span>
+      <div class="sub">
+        <div><b>Foodtruck Centro</b> · Caja #01</div>
+        <div>Usuario: Felipe</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-nav">
+        <button id="navPos" class="active">🍔 POS</button>
+        <button id="navOrders">🧾 Pedidos</button>
+        <button id="navKitchen">👨‍🍳 Cocina</button>
+        <button id="navCash">📊 Caja</button>
+        <button id="navConfig">⚙ Config</button>
+      </div>
+      <div class="cash-badge"><span class="dot"></span>Caja abierta</div>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+  </header>
+
+  <!-- POS VIEW -->
+  <div class="main">
+    <aside class="cats" id="catPanel"></aside>
+    <section class="products">
+      <div class="search-wrap">
+        <input id="searchInput" type="text" placeholder="🔍 Buscar producto..." autocomplete="off">
+        <button class="btn-secondary" id="btnClear">✕</button>
+      </div>
+      <div class="grid-wrap"><div class="grid" id="productGrid"></div></div>
+    </section>
+    <aside class="order" id="orderPanel"></aside>
+  </div>
+
+  <!-- VIEWS -->
+  <div class="view" id="viewOrders"></div>
+  <div class="view" id="viewKitchen"></div>
+  <div class="view" id="viewCash"></div>
+  <div class="view" id="viewConfig"></div>
+
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="ovProduct"><div class="modal" id="productModal"></div></div>
+<div class="overlay" id="ovCustomer"><div class="modal" id="customerModal"></div></div>
+<div class="overlay" id="ovType"><div class="modal" id="typeModal"></div></div>
+<div class="overlay" id="ovPayment"><div class="modal" id="paymentModal"></div></div>
+<div class="overlay" id="ovConfirm"><div class="modal" id="confirmModal"></div></div>
+<div class="overlay" id="ovTicket"><div class="modal" id="ticketModal"></div></div>
+
+<div class="toast" id="toast"></div>
+<div id="print-area"></div>
+
+<script>
+/* ============ STORAGE ============ */
+const Store={
+  save(){
+    localStorage.setItem('pos_state',JSON.stringify({
+      nextOrderNumber:State.nextOrderNumber,
+      products:PRODUCTS.products,
+      orders:State.orders,
+      kitchen:State.kitchen,
+      cash:State.cash,
+      config:State.config
+    }));
+  },
+  load(){
+    try{
+      const raw=localStorage.getItem('pos_state');
+      if(!raw)return false;
+      const d=JSON.parse(raw);
+      State.nextOrderNumber=d.nextOrderNumber||1042;
+      State.orders=d.orders||[];
+      State.kitchen=d.kitchen||[];
+      State.cash=Object.assign({},State.cash,d.cash||{});
+      State.config=Object.assign({},State.config,d.config||{});
+      return true;
+    }catch(e){return false}
+  }
+};
+
+/* ============ STATE ============ */
+const State={
+  nextOrderNumber:1042,
+  currentOrder:null,
+  orders:[],
+  kitchen:[],
+  cash:{open:true,opening:50000,byMethod:{cash:0,debit:0,credit:0,mercado:0,transfer:0}},
+  config:{openTime:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+};
+
+/* ============ PRODUCTS ============ */
+const CATEGORIES=[
+  {id:"all",name:"Todos",icon:"🍽️"},
+  {id:"completos",name:"Completos",icon:"🌭"},
+  {id:"sandwiches",name:"Sándwiches",icon:"🥪"},
+  {id:"hotdogs",name:"Hot Dogs",icon:"🌭"},
+  {id:"hamburguesas",name:"Hamburguesas",icon:"🍔"},
+  {id:"papas",name:"Papas",icon:"🍟"},
+  {id:"bebidas",name:"Bebidas",icon:"🥤"},
+  {id:"combos",name:"Combos",icon:"🎁"},
+  {id:"extras",name:"Extras",icon:"➕"}
+];
+
+const INGREDIENTS={
+  completos:["Tomate","Palta","Mayo","Salsa"],
+  sandwiches:["Tomate","Palta","Mayo","Lechuga"],
+  hotdogs:["Cebolla","Palta","Mayo","Salsa","Tomate"],
+  hamburguesas:["Lechuga","Tomate","Cebolla","Queso","Mayo","Ketchup"]
+};
+
+const EXTRAS=[
+  {id:"extra-cheese",name:"Queso",price:700},
+  {id:"extra-bacon",name:"Bacon",price:1000},
+  {id:"extra-egg",name:"Huevo",price:700},
+  {id:"extra-papas",name:"Papas",price:1000},
+  {id:"extra-aji",name:"Ají",price:300},
+  {id:"extra-cebolla",name:"Cebolla",price:400}
+];
+
+const PRODUCTS={
+  products:null,
+  init(){
+    const def=[
+      {id:"completo-italiano",name:"Italiano",category:"completos",price:3990,desc:"Tomate, palta y mayo",icon:"🌭",custom:true,avail:true},
+      {id:"completo-italiano-full",name:"Completo Italiano",category:"completos",price:3990,desc:"Completo con lo esencial",icon:"🌭",custom:true,avail:true},
+      {id:"completo-dinamico",name:"Dinámico",category:"completos",price:4490,desc:"Tomate, palta, mayo y salsa",icon:"🌭",custom:true,avail:true},
+      {id:"completo-chacarero",name:"Chacarero",category:"completos",price:4490,desc:"Tomate, porotos y ají",icon:"🌭",custom:true,avail:true},
+      {id:"completo-especial",name:"Especial",category:"completos",price:4490,desc:"Palta, mayo y salchicha",icon:"🌭",custom:true,avail:true},
+      {id:"completo-pobre",name:"A lo Pobre",category:"completos",price:4990,desc:"Con huevo y papas",icon:"🌭",custom:true,avail:true},
+      {id:"sandwich-barros",name:"Barros Luco",category:"sandwiches",price:5990,desc:"Carne y queso caliente",icon:"🥪",custom:true,avail:true},
+      {id:"sandwich-chacarero",name:"Chacarero",category:"sandwiches",price:5990,desc:"Carne, tomate y porotos",icon:"🥪",custom:true,avail:true},
+      {id:"sandwich-lomito",name:"Lomito",category:"sandwiches",price:5490,desc:"Lomo, palta y mayo",icon:"🥪",custom:true,avail:true},
+      {id:"sandwich-ave",name:"Ave Mayo",category:"sandwiches",price:4990,desc:"Pollo, palta y mayo",icon:"🥪",custom:true,avail:true},
+      {id:"sandwich-mechada",name:"Mechada",category:"sandwiches",price:6490,desc:"Carne mechada y queso",icon:"🥪",custom:true,avail:true},
+      {id:"hotdog-clasico",name:"Hot Dog Clásico",category:"hotdogs",price:3490,desc:"Salchicha y pan",icon:"🌭",custom:true,avail:true},
+      {id:"hotdog-bbq",name:"Hot Dog BBQ",category:"hotdogs",price:4490,desc:"Salsa BBQ y cebolla",icon:"🌭",custom:true,avail:true},
+      {id:"hotdog-cheddar",name:"Hot Dog Cheddar",category:"hotdogs",price:4990,desc:"Queso cheddar fundido",icon:"🌭",custom:true,avail:true},
+      {id:"burger-clasica",name:"Clásica",category:"hamburguesas",price:5990,desc:"Carne, lechuga y tomate",icon:"🍔",custom:true,avail:true},
+      {id:"burger-cheese",name:"Cheese Burger",category:"hamburguesas",price:6490,desc:"Doble queso fundido",icon:"🍔",custom:true,avail:true},
+      {id:"burger-doble",name:"Doble Cheese",category:"hamburguesas",price:7990,desc:"Doble carne, doble queso",icon:"🍔",custom:true,avail:true},
+      {id:"papas-fritas",name:"Papas Fritas",category:"papas",price:2490,desc:"Porción de papas",icon:"🍟",custom:false,avail:true},
+      {id:"papas-cheddar",name:"Papas Cheddar",category:"papas",price:3990,desc:"Papas con queso cheddar",icon:"🍟",custom:false,avail:true},
+      {id:"papas-bacon",name:"Papas Bacon",category:"papas",price:4490,desc:"Papas con bacon y queso",icon:"🍟",custom:false,avail:false},
+      {id:"beb-cocacola",name:"Coca-Cola",category:"bebidas",price:1500,desc:"Lata 330ml",icon:"🥤",custom:false,avail:true},
+      {id:"beb-cocazero",name:"Coca-Cola Zero",category:"bebidas",price:1500,desc:"Lata 330ml",icon:"🥤",custom:false,avail:true},
+      {id:"beb-sprite",name:"Sprite",category:"bebidas",price:1500,desc:"Lata 330ml",icon:"🥤",custom:false,avail:true},
+      {id:"beb-fanta",name:"Fanta",category:"bebidas",price:1500,desc:"Lata 330ml",icon:"🥤",custom:false,avail:true},
+      {id:"beb-agua",name:"Agua",category:"bebidas",price:1200,desc:"Botella 500ml",icon:"💧",custom:false,avail:true},
+      {id:"combo-italiano",name:"Combo Italiano",category:"combos",price:5990,desc:"Completo + bebida",icon:"🎁",custom:false,avail:true},
+      {id:"combo-cheese",name:"Combo Cheese Burger",category:"combos",price:8490,desc:"Hamburguesa + papas + bebida",icon:"🎁",custom:false,avail:true},
+      {id:"combo-hotdog",name:"Combo Hot Dog",category:"combos",price:5990,desc:"Hot dog + papas + bebida",icon:"🎁",custom:false,avail:true},
+      {id:"extra-queso",name:"Extra Queso",category:"extras",price:700,desc:"Porción extra de queso",icon:"🧀",custom:false,avail:true},
+      {id:"extra-bacon",name:"Extra Bacon",category:"extras",price:1000,desc:"Porción de bacon",icon:"🥓",custom:false,avail:true},
+      {id:"extra-papas",name:"Extra Papas",category:"extras",price:1000,desc:"Porción de papas",icon:"🍟",custom:false,avail:true},
+      {id:"extra-huevo",name:"Extra Huevo",category:"extras",price:700,desc:"Huevo a la plancha",icon:"🍳",custom:false,avail:true},
+      {id:"extra-aji",name:"Extra Ají",category:"extras",price:300,desc:"Ají picante",icon:"🌶️",custom:false,avail:true}
+    ];
+    this.products=def;
+  }
+};
+
+/* ============ UI HELPERS ============ */
+const fmt=n=>'$'+n.toLocaleString('es-CL');
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function closeModals(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'))}
+function showModal(id){closeModals();document.getElementById(id).classList.add('active')}
+
+/* ============ CART / CURRENT ORDER ============ */
+function newOrder(){
+  State.currentOrder={
+    id:State.nextOrderNumber,type:"takeaway",status:"new",paymentStatus:"pending",paymentMethod:null,
+    customer:{name:"Consumidor final",phone:"",table:"",note:""},
+    items:[],subtotal:0,discount:0,total:0,createdAt:new Date().toISOString()
+  };
+  State.nextOrderNumber++;
+  Store.save();
+  renderOrder();
+}
+function itemBase(item){
+  let total=item.basePrice+(item.size&&item.size.price?item.size.price:0);
+  (item.extras||[]).forEach(e=>total+=e.price);
+  return total;
+}
+function addToCart(product){
+  if(!product.avail)return;
+  if(product.custom){openProductModal(product);return}
+  const item={productId:product.id,name:product.name,quantity:1,basePrice:product.price,size:null,extras:[],removedIngredients:[],notes:"",total:product.price};
+  State.currentOrder.items.push(item);
+  toast('Agregado: '+product.name);
+  renderOrder();
+}
+function calcItem(item){return itemBase(item)*item.quantity}
+function calculateCartTotal(){
+  const o=State.currentOrder;
+  o.subtotal=o.items.reduce((s,i)=>s+calcItem(i),0);
+  o.total=o.subtotal-o.discount;
+}
+function removeFromCart(idx){State.currentOrder.items.splice(idx,1);renderOrder()}
+function updateCartQuantity(idx,delta){
+  const it=State.currentOrder.items[idx];it.quantity=Math.max(1,it.quantity+delta);renderOrder();
+}
+function editItem(idx){
+  const it=State.currentOrder.items[idx];
+  openProductModal(findProduct(it.productId),it);
+}
+
+/* ============ PRODUCTS UI ============ */
+function renderCategories(){
+  const p=document.getElementById('catPanel');
+  p.innerHTML='<h3>Categorías</h3>'+CATEGORIES.map(c=>`
+    <button class="cat-btn ${c.id===UI.activeCat?'active':''}" data-cat="${c.id}">
+      <span class="ci">${c.icon}</span>${c.name}
+    </button>`).join('');
+  p.querySelectorAll('.cat-btn').forEach(b=>b.onclick=()=>{UI.activeCat=b.dataset.cat;renderCategories();renderProducts();});
+}
+function findProduct(id){return PRODUCTS.products.find(p=>p.id===id)}
+function renderProducts(){
+  const g=document.getElementById('productGrid');
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  let list=PRODUCTS.products;
+  if(UI.activeCat!=='all')list=list.filter(p=>p.category===UI.activeCat);
+  if(q){
+    const cat=CATEGORIES.find(c=>c.name.toLowerCase()===q);
+    list=list.filter(p=>p.name.toLowerCase().includes(q)||(cat&&p.category===cat.id)||p.id.toLowerCase().includes(q));
+  }
+  g.innerHTML=list.map(p=>`
+    <div class="card ${p.avail?'':'no-stock'}">
+      <div class="img">
+        ${p.icon}
+        <span class="stock ${p.avail?'ok':'no'}">${p.avail?'DISPONIBLE':'AGOTADO'}</span>
+      </div>
+      <div class="body">
+        <div class="name">${esc(p.name)}</div>
+        <div class="desc">${esc(p.desc)}</div>
+        <div class="price">${fmt(p.price)}</div>
+        <button class="add-btn" ${p.avail?'':'disabled'}>+ AGREGAR</button>
+      </div>
+    </div>`).join('');
+  g.querySelectorAll('.card').forEach((card,i)=>{
+    const btn=card.querySelector('.add-btn');
+    const idx=i; // index within filtered list
+    // re-map to actual product
+    const name=card.querySelector('.name').textContent;
+    const prod=PRODUCTS.products.find(x=>x.name===name);
+    if(btn)btn.onclick=()=>addToCart(prod);
+  });
+}
+
+/* ============ PRODUCT MODAL ============ */
+const PM={product:null,editIdx:null,size:"normal",extras:[],removed:[],qty:1,notes:"",ings:[]};
+function openProductModal(product,editItem){
+  PM.product=product;PM.editIdx=editItem?State.currentOrder.items.indexOf(editItem):null;
+  PM.size=editItem&&editItem.size?editItem.size.id:"normal";
+  PM.extras=editItem?(editItem.extras||[]).map(e=>e.id):[];
+  PM.removed=editItem?(editItem.removedIngredients||[]):[];
+  PM.qty=editItem?editItem.quantity:1;
+  PM.notes=editItem?(editItem.notes||""):"";
+  PM.ings=INGREDIENTS[product.category]||[];
+  renderProductModal();
+  showModal('ovProduct');
+}
+function pmTotal(){
+  let t=PM.product.price;
+  if(PM.size==='xl')t+=1000;
+  PM.extras.forEach(id=>{const e=EXTRAS.find(x=>x.id===id);if(e)t+=e.price});
+  return t*PM.qty;
+}
+function renderProductModal(){
+  const m=document.getElementById('productModal');
+  const ings=PM.ings;
+  m.innerHTML=`
+    <div class="modal-head"><h3>${esc(PM.product.name)}</h3><button class="x" onclick="closeModals()">✕</button></div>
+    <div class="modal-body">
+      <div class="sec"><label>Tamaño</label>
+        <div class="opt ${PM.size==='normal'?'selected':''}" data-size="normal"><span class="opl">Normal</span><span class="chk"></span></div>
+        <div class="opt ${PM.size==='xl'?'selected':''}" data-size="xl"><span class="opl">XL</span><span class="opp">+$1.000</span><span class="chk"></span></div>
+      </div>
+      ${ings.length?`
+      <div class="sec"><label>Quitar ingredientes</label>
+        ${ings.map(i=>`<div class="opt ${PM.removed.includes(i)?'selected':''}" data-remove="${i}"><span class="opl">Sin ${i}</span><span class="chk"></span></div>`).join('')}
+      </div>`:''}
+      <div class="sec"><label>Agregados</label>
+        ${EXTRAS.map(e=>`<div class="opt ${PM.extras.includes(e.id)?'selected':''}" data-extra="${e.id}"><span class="opl">${e.name}</span><span class="opp">+${fmt(e.price)}</span><span class="chk"></span></div>`).join('')}
+      </div>
+      <div class="sec"><label>Observación</label>
+        <textarea rows="2" placeholder="Ej: Pan bien tostado" id="pmNotes">${esc(PM.notes)}</textarea>
+      </div>
+      <div class="sec"><label>Cantidad</label>
+        <div class="qty-row">
+          <button id="pmMinus">−</button><span class="num" id="pmQty">${PM.qty}</span><button id="pmPlus">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="m-total"><span class="lbl">TOTAL</span>${fmt(pmTotal())}</div>
+      <button class="btn-primary" id="pmAdd">AGREGAR AL PEDIDO</button>
+    </div>`;
+  m.querySelectorAll('[data-size]').forEach(el=>el.onclick=()=>{PM.size=el.dataset.size;renderProductModal()});
+  m.querySelectorAll('[data-remove]').forEach(el=>el.onclick=()=>{
+    const v=el.dataset.remove;
+    const i=PM.removed.indexOf(v);
+    if(i>=0)PM.removed.splice(i,1);else PM.removed.push(v);
+    renderProductModal();
+  });
+  m.querySelectorAll('[data-extra]').forEach(el=>el.onclick=()=>{
+    const v=el.dataset.extra;
+    const i=PM.extras.indexOf(v);
+    if(i>=0)PM.extras.splice(i,1);else PM.extras.push(v);
+    renderProductModal();
+  });
+  document.getElementById('pmNotes').oninput=e=>PM.notes=e.target.value;
+  document.getElementById('pmMinus').onclick=()=>{PM.qty=Math.max(1,PM.qty-1);renderProductModal()};
+  document.getElementById('pmPlus').onclick=()=>{PM.qty++;renderProductModal()};
+  document.getElementById('pmAdd').onclick=confirmProduct;
+}
+function confirmProduct(){
+  const item={
+    productId:PM.product.id,name:PM.product.name,quantity:PM.qty,basePrice:PM.product.price,
+    size:PM.size==='xl'?{id:'xl',name:'XL',price:1000}:null,
+    extras:PM.extras.map(id=>{const e=EXTRAS.find(x=>x.id===id);return {id,name:e.name,price:e.price}}),
+    removedIngredients:PM.removed,notes:PM.notes,total:pmTotal()/PM.qty
+  };
+  if(PM.editIdx!=null)State.currentOrder.items[PM.editIdx]=item;
+  else State.currentOrder.items.push(item);
+  closeModals();
+  toast('Agregado: '+item.name);
+  renderOrder();
+}
+
+/* ============ ORDER PANEL ============ */
+function renderOrder(){
+  const o=State.currentOrder;
+  const p=document.getElementById('orderPanel');
+  if(!o)return;
+  calculateCartTotal();
+  p.innerHTML=`
+    <div class="order-head">
+      <div class="num">PEDIDO #${o.id}</div>
+      <div class="cust">Cliente: ${esc(o.customer.name)}</div>
+    </div>
+    <div class="order-items" id="orderItems">${renderOrderItems()}</div>
+    <div class="order-summary">
+      <div class="sum-row"><span>Subtotal</span><span>${fmt(o.subtotal)}</span></div>
+      <div class="sum-row"><span>Descuento</span><span>${fmt(o.discount)}</span></div>
+      <div class="sum-row total"><span>TOTAL</span><span class="v">${fmt(o.total)}</span></div>
+      <div class="order-btns">
+        <button class="cancel" id="btnCancelOrder">CANCELAR</button>
+        <button class="charge" id="btnCharge" ${o.items.length?'':'disabled'}>COBRAR</button>
+      </div>
+    </div>`;
+  const items=document.getElementById('orderItems');
+  items.addEventListener('click',e=>{
+    const btn=e.target.closest('button');if(!btn)return;
+    const idx=+btn.dataset.idx;
+    if(btn.dataset.act==='minus')updateCartQuantity(idx,-1);
+    else if(btn.dataset.act==='plus')updateCartQuantity(idx,1);
+    else if(btn.dataset.act==='edit')editItem(idx);
+    else if(btn.dataset.act==='del')removeFromCart(idx);
+  });
+  document.getElementById('btnCancelOrder').onclick=cancelOrder;
+  document.getElementById('btnCharge').onclick=openCustomerModal;
+}
+function renderOrderItems(){
+  const o=State.currentOrder;
+  if(!o.items.length)return '<div class="order-empty">Carrito vacío.<br>Agrega productos</div>';
+  return o.items.map((it,idx)=>`
+    <div class="oitem">
+      <div class="top">
+        <div class="qty-name"><span class="q">${it.quantity}x</span>${esc(it.name)}</div>
+        <div class="total">${fmt(calcItem(it))}</div>
+      </div>
+      ${(it.size||it.extras.length||it.removedIngredients.length||it.notes)?`<div class="subs">
+        ${it.size?`<div>• ${it.size.name} +${fmt(it.size.price)}</div>`:''}
+        ${it.extras.map(e=>`<div>• ${e.name} +${fmt(e.price)}</div>`).join('')}
+        ${it.removedIngredients.map(r=>`<div>• Sin ${r}</div>`).join('')}
+        ${it.notes?`<div>• ${esc(it.notes)}</div>`:''}
+      </div>`:''}
+      <div class="actions">
+        <button data-act="minus" data-idx="${idx}">−</button>
+        <button data-act="plus" data-idx="${idx}">+</button>
+        <button data-act="edit" data-idx="${idx}">Editar</button>
+        <button data-act="del" data-idx="${idx}">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function cancelOrder(){
+  if(!confirm('¿Cancelar el pedido #'+State.currentOrder.id+'?'))return;
+  State.currentOrder=null;renderOrder();toast('Pedido cancelado');
+}
+
+/* ============ CUSTOMER MODAL ============ */
+function openCustomerModal(){
+  const o=State.currentOrder;
+  const m=document.getElementById('customerModal');
+  m.innerHTML=`
+    <div class="modal-head"><h3>Cliente y tipo de pedido</h3><button class="x" onclick="closeModals()">✕</button></div>
+    <div class="modal-body">
+      <div class="sec"><label>Tipo de pedido</label>
+        ${[['takeaway','🏪','Para llevar'],['dinein','🍽️','Servir aquí'],['qr','📱','Pedido QR'],['delivery','🛵','Delivery']].map(t=>`
+          <div class="opt ${o.type===t[0]?'selected':''}" data-type="${t[0]}"><span class="opl">${t[1]} ${t[2]}</span><span class="chk"></span></div>`).join('')}
+      </div>
+      <div class="sec"><label>Cliente (opcional)</label>
+        <div class="opt" data-name="Consumidor final" style="margin-bottom:8px"><span class="opl">Consumidor final</span></div>
+        <input type="text" placeholder="Nombre" value="${esc(o.customer.name==='Consumidor final'?'':o.customer.name)}" id="custName" style="margin-bottom:6px">
+        <input type="text" placeholder="Teléfono" value="${esc(o.customer.phone)}" id="custPhone" style="margin-bottom:6px">
+        <input type="text" placeholder="N° de mesa (si aplica)" value="${esc(o.customer.table)}" id="custTable">
+        <textarea rows="2" placeholder="Observación" id="custNote" style="margin-top:6px">${esc(o.customer.note)}</textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="m-total"><span class="lbl">TOTAL</span>${fmt(o.total)}</div>
+      <button class="btn-primary" id="custContinue">CONTINUAR →</button>
+    </div>`;
+  m.querySelectorAll('[data-type]').forEach(el=>el.onclick=()=>{o.type=el.dataset.type;openCustomerModal()});
+  m.querySelectorAll('[data-name]').forEach(el=>el.onclick=()=>{
+    o.customer={name:"Consumidor final",phone:"",table:"",note:""};openCustomerModal();
+  });
+  document.getElementById('custContinue').onclick=()=>{
+    o.customer.name=document.getElementById('custName').value||'Consumidor final';
+    o.customer.phone=document.getElementById('custPhone').value;
+    o.customer.table=document.getElementById('custTable').value;
+    o.customer.note=document.getElementById('custNote').value;
+    renderOrder();closeModals();openPaymentModal();
+  };
+  showModal('ovCustomer');
+}
+
+/* ============ PAYMENT ============ */
+const PMT={method:null,received:null};
+function openPaymentModal(){
+  const o=State.currentOrder;
+  const m=document.getElementById('paymentModal');
+  m.innerHTML=`
+    <div class="modal-head"><h3>Cobro — Pedido #${o.id}</h3><button class="x" onclick="closeModals()">✕</button></div>
+    <div class="modal-body">
+      <div class="big-total"><span class="lbl">TOTAL A PAGAR</span><br>${fmt(o.total)}</div>
+      <div class="sec"><label>Método de pago</label>
+        <div class="pay-grid">
+          ${[['cash','💵','EFECTIVO'],['debit','💳','DÉBITO'],['credit','💳','CRÉDITO'],['mercado','📱','MERCADO PAGO'],['transfer','🏦','TRANSFERENCIA']].map(pm=>`
+            <button data-method="${pm[0]}"><span class="pi">${pm[1]}</span>${pm[2]}</button>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  m.querySelectorAll('[data-method]').forEach(b=>b.onclick=()=>renderPaymentMethod(b.dataset.method));
+  showModal('ovPayment');
+}
+const METHOD_NAMES={cash:'Efectivo',debit:'Débito',credit:'Crédito',mercado:'Mercado Pago',transfer:'Transferencia'};
+const METHOD_KEYS={cash:'cash',debit:'debit',credit:'credit',mercado:'mercado',transfer:'transfer'};
+function renderPaymentMethod(method){
+  PMT.method=method;PMT.received=null;
+  const o=State.currentOrder;
+  const m=document.getElementById('paymentModal');
+  const body=
+    method==='cash'?renderCash() :
+    method==='mercado'?renderMercado() :
+    renderCard(method);
+  m.innerHTML=`
+    <div class="modal-head"><h3>${esc(METHOD_NAMES[method])}</h3><button class="x" onclick="closeModals()">✕</button></div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot"><button class="btn-secondary" id="pmBack">← Métodos</button></div>`;
+  document.getElementById('pmBack').onclick=openPaymentModal;
+  bindPaymentMethod(method);
+}
+function renderCash(){
+  const o=State.currentOrder;
+  return `
+    <div class="big-total"><span class="lbl">TOTAL</span><br>${fmt(o.total)}</div>
+    <div class="sec"><label>Efectivo recibido</label>
+      <div class="quick-cash">
+        ${[2000,5000,10000,20000].map(v=>`<button data-q="${v}">${fmt(v)}</button>`).join('')}
+        <button data-q="${Math.ceil(o.total/1000)*1000}">${fmt(Math.ceil(o.total/1000)*1000)}</button>
+      </div>
+      <div class="cash-input"><input type="number" id="cashReceived" placeholder="Monto recibido"><button class="btn-ok" id="cashSet">✓</button></div>
+      <div class="sec" style="margin-top:8px"><label>Vuelto</label>
+        <div class="return-box" id="cashReturn">${fmt(0)}</div>
+      </div>
+    </div>`;
+}
+function renderCard(method){
+  return `
+    <div class="big-total"><span class="lbl">TOTAL</span><br>${fmt(State.currentOrder.total)}</div>
+    <div class="centered"><div class="confirm-ico">💳</div><p>Esperando pago...</p></div>`;
+}
+function renderMercado(){
+  return `
+    <div class="big-total"><span class="lbl">TOTAL</span><br>${fmt(State.currentOrder.total)}</div>
+    <div class="centered"><div class="qr">MP</div>
+      <p>Escanea el QR para pagar</p><p style="color:var(--muted);font-size:13px;margin-top:4px">Esperando pago...</p></div>`;
+}
+function bindPaymentMethod(method){
+  const m=document.getElementById('paymentModal');
+  if(method==='cash'){
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{
+      const o=State.currentOrder;
+      const v=Math.max(+b.dataset.q,o.total);PMT.received=v;
+      m.querySelector('#cashReceived').value=v;updateCashReturn(v);
+    });
+    m.querySelector('#cashSet').onclick=()=>{
+      const o=State.currentOrder;const v=+m.querySelector('#cashReceived').value;
+      if(v>=o.total){PMT.received=v;updateCashReturn(v)}else{toast('Monto insuficiente')}
+    };
+    // confirm
+    const foot=m.querySelector('.modal-foot');
+    const btn=document.createElement('button');btn.className='btn-primary';btn.style.flex='1';
+    btn.textContent='CONFIRMAR PAGO';btn.id='pmConfirm';
+    btn.onclick=()=>{
+      if(PMT.received==null||PMT.received<State.currentOrder.total){toast('Ingresa un monto válido');return}
+      completePayment(method);
+    };
+    foot.appendChild(btn);
+  }else if(method==='mercado'){
+    const foot=m.querySelector('.modal-foot');
+    const btn=document.createElement('button');btn.className='btn-ok';btn.style.flex='1';
+    btn.textContent='SIMULAR PAGO APROBADO';btn.onclick=()=>completePayment(method);
+    foot.appendChild(btn);
+  }else{
+    const foot=m.querySelector('.modal-foot');
+    const btn=document.createElement('button');btn.className='btn-primary';btn.style.flex='1';
+    btn.textContent='SIMULAR PAGO APROBADO';btn.onclick=()=>completePayment(method);
+    foot.appendChild(btn);
+  }
+}
+function updateCashReturn(v){
+  const o=State.currentOrder;
+  const ret=v-o.total;
+  document.getElementById('cashReturn').textContent=fmt(Math.max(0,ret));
+}
+function completePayment(method){
+  const o=State.currentOrder;
+  o.paymentStatus='paid';o.paymentMethod=method;
+  // register in cash register
+  const key=METHOD_KEYS[method];
+  State.cash.byMethod[key]+=o.total;
+  // create order
+  o.completedAt=new Date().toISOString();
+  State.orders.push(o);
+  State.cash.orders=(State.cash.orders||0)+1;
+  const tx='TX-'+(o.id*7+3);
+  closeModals();
+  showConfirmModal(o,tx);
+  Store.save();
+}
+function showConfirmModal(o,tx){
+  const m=document.getElementById('confirmModal');
+  m.innerHTML=`
+    <div class="modal-body centered">
+      <span class="confirm-ico">✅</span>
+      <h3 style="margin-bottom:4px">VENTA COMPLETADA</h3>
+      <div class="big-total">${fmt(o.total)}</div>
+      <div class="info-grid">
+        <div class="ci2"><div class="lbl">Pedido</div><div class="val">#${o.id}</div></div>
+        <div class="ci2"><div class="lbl">Pago</div><div class="val">${METHOD_NAMES[o.paymentMethod]}</div></div>
+        <div class="ci2"><div class="lbl">Transacción</div><div class="val">${tx}</div></div>
+        <div class="ci2"><div class="lbl">Hora</div><div class="val">${fmtTime(o.completedAt)}</div></div>
+      </div>
+    </div>
+    <div class="modal-foot" style="flex-direction:column">
+      <button class="btn-primary" id="cfPrint" style="width:100%">🖨 IMPRIMIR BOLETA</button>
+      <button class="btn-ok" id="cfKitchen" style="width:100%">👨‍🍳 ENVIAR A COCINA</button>
+      <button class="btn-secondary" id="cfNew" style="width:100%">NUEVO PEDIDO</button>
+    </div>`;
+  document.getElementById('cfPrint').onclick=()=>showTicket(o);
+  document.getElementById('cfKitchen').onclick=()=>{sendToKitchen(o);closeModals();showKitchenView();State.currentOrder=null;newOrder();toast('Pedido enviado a cocina');};
+  document.getElementById('cfNew').onclick=()=>{closeModals();State.currentOrder=null;newOrder();toast('Nuevo pedido #'+State.nextOrderNumber);};
+  showModal('ovConfirm');
+  renderOrder();
+}
+function fmtTime(iso){const d=new Date(iso);return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+
+/* ============ TICKET ============ */
+function showTicket(o){
+  const m=document.getElementById('ticketModal');
+  const d=new Date(o.completedAt||o.createdAt);
+  const date=d.toLocaleDateString('es-CL');
+  const time=fmtTime(d.toISOString?d.toISOString():o.completedAt);
+  const lines=[];
+  lines.push('================================');
+  lines.push('          SANGUCHÓN');
+  lines.push('       FOODTRUCK CENTRO');
+  lines.push('================================');
+  lines.push('PEDIDO #'+o.id);
+  lines.push(date+' '+time);
+  lines.push('--------------------------------');
+  o.items.forEach(it=>{
+    lines.push(it.quantity+' x '+it.name);
+    if(it.size)lines.push('    '+it.size.name+' +'+fmt(it.size.price));
+    it.extras.forEach(e=>lines.push('    '+e.name+' +'+fmt(e.price)));
+    it.removedIngredients.forEach(r=>lines.push('    SIN '+r.toUpperCase()));
+    if(it.notes)lines.push('    '+it.notes);
+    lines.push('              '+fmt(it.total*it.quantity));
+  });
+  lines.push('--------------------------------');
+  lines.push('TOTAL         '+fmt(o.total));
+  lines.push('PAGO          '+(METHOD_NAMES[o.paymentMethod]||'').toUpperCase());
+  lines.push('');
+  lines.push('Gracias por preferir Sanguchón');
+  lines.push('================================');
+  m.innerHTML=`
+    <div class="modal-head"><h3>Boleta #${o.id}</h3><button class="x" onclick="closeModals()">✕</button></div>
+    <div class="modal-body"><div class="ticket-body">${lines.map(esc).join('\n')}</div>
+      <div class="ticket-actions">
+        <button class="btn-primary" id="tkPrint">🖨 IMPRIMIR</button>
+        <button class="btn-secondary" id="tkClose">Cerrar</button>
+      </div></div>`;
+  document.getElementById('tkPrint').onclick=()=>{
+    document.getElementById('print-area').innerHTML='<div class="ticket-body">'+lines.map(esc).join('\n')+'</div>';
+    window.print();
+  };
+  document.getElementById('tkClose').onclick=closeModals;
+  closeModals();showModal('ovTicket');
+}
+
+/* ============ KITCHEN / KDS ============ */
+function sendToKitchen(o){
+  if(State.kitchen.find(k=>k.orderId===o.id))return;
+  State.kitchen.push({orderId:o.id,status:'new',sentAt:new Date().toISOString(),items:o.items});
+  Store.save();
+}
+function updateKitchenOrder(orderId,status){
+  const k=State.kitchen.find(x=>x.orderId===orderId);
+  if(k){k.status=status;Store.save();renderKitchenView();}
+}
+function renderKitchenView(){
+  const v=document.getElementById('viewKitchen');
+  v.innerHTML=`<h2>👨‍🍳 Kitchen Display System</h2>
+    <div class="kitchen-grid">${State.kitchen.length?State.kitchen.map(k=>{
+      const mins=Math.max(0,Math.floor((Date.now()-new Date(k.sentAt))/60000));
+      return `<div class="kcard">
+        <div class="khead"><span class="knum">PEDIDO #${k.orderId}</span><span class="ktime">Hace ${mins} min</span></div>
+        <div class="kitems">${k.items.map(it=>`${it.quantity}x ${esc(it.name)}
+          ${it.size?`<span class="sub"> • ${it.size.name}</span>`:''}
+          ${it.removedIngredients.map(r=>`<span class="sub"> • SIN ${r.toUpperCase()}</span>`).join('')}
+          ${it.extras.map(e=>`<span class="sub"> • EXTRA ${e.name.toUpperCase()}</span>`).join('')}
+          ${it.notes?`<span class="sub"> • ${esc(it.notes)}</span>`:''}`).join('')}</div>
+        <div class="kstatus">
+          ${[['new','NUEVO'],['preparing','EN PREPARACIÓN'],['ready','LISTO'],['delivered','ENTREGADO']].map(s=>`
+            <button class="${k.status===s[0]?'active':''}" data-order="${k.orderId}" data-status="${s[0]}">${s[1]}</button>`).join('')}
+        </div>
+      </div>`}).join(''):'<p style="color:var(--muted)">No hay órdenes en cocina.</p>'}</div>`;
+  v.querySelectorAll('.kstatus button').forEach(b=>b.onclick=()=>updateKitchenOrder(+b.dataset.order,b.dataset.status));
+}
+function showKitchenView(){switchView('kitchen')}
+
+/* ============ ORDERS DASHBOARD ============ */
+const ORD_FILTERS=[['all','Todos'],['new','Nuevos'],['preparing','En preparación'],['ready','Listos'],['delivered','Entregados'],['cancelled','Cancelados']];
+const STATUS_BADGE={new:'new',preparing:'preparing',ready:'ready',delivered:'delivered',cancelled:'cancelled'};
+const STATUS_NAMES={new:'NUEVO',preparing:'EN PREPARACIÓN',ready:'LISTO',delivered:'ENTREGADO',cancelled:'CANCELADO'};
+function renderOrdersView(){
+  const v=document.getElementById('viewOrders');
+  const f=UI.orderFilter||'all';
+  let list=[...State.orders].reverse();
+  if(f!=='all')list=list.filter(o=>o.status===f);
+  v.innerHTML=`<h2>🧾 Pedidos</h2>
+    <div class="filters">${ORD_FILTERS.map(o=>`<button class="${f===o[0]?'active':''}" data-f="${o[0]}">${o[1]}</button>`).join('')}</div>
+    <div class="orders-table">
+      <div class="order-row head"><span>Pedido</span><span>Cliente</span><span>Total</span><span>Pago</span><span>Estado</span></div>
+      ${list.length?list.map(o=>{
+        const st=o.paymentStatus==='paid'?'paid':'pending';
+        const kst=State.kitchen.find(k=>k.orderId===o.id);
+        return `<div class="order-row">
+          <span style="font-weight:800">#${o.id}</span>
+          <span>${esc(o.customer.name)}</span>
+          <span style="font-weight:700">${fmt(o.total)}</span>
+          <span><span class="badge ${st}">${st==='paid'?'PAGADO':'PENDIENTE'}</span></span>
+          <span>${kst?`<span class="badge ${STATUS_BADGE[kst.status]}">${STATUS_NAMES[kst.status]}</span>`:'<span class="badge pending">—</span>'}</span>
+        </div>`}).join(''):'<div style="padding:20px;color:var(--muted);text-align:center">Sin pedidos</div>'}
+    </div>`;
+  v.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{UI.orderFilter=b.dataset.f;renderOrdersView()});
+}
+
+/* ============ CASH REGISTER ============ */
+function renderCashView(){
+  const v=document.getElementById('viewCash');
+  const c=State.cash;
+  const total=c.byMethod.cash+c.byMethod.debit+c.byMethod.credit+c.byMethod.mercado+c.byMethod.transfer;
+  v.innerHTML=`<h2>📊 Caja</h2>
+    <div class="cash-grid">
+      <div class="cash-card"><div class="lbl">Apertura</div><div class="val">${fmt(c.opening)}</div></div>
+      <div class="cash-card"><div class="lbl">Ventas efectivo</div><div class="val">${fmt(c.byMethod.cash)}</div></div>
+      <div class="cash-card"><div class="lbl">Ventas débito</div><div class="val">${fmt(c.byMethod.debit)}</div></div>
+      <div class="cash-card"><div class="lbl">Ventas crédito</div><div class="val">${fmt(c.byMethod.credit)}</div></div>
+      <div class="cash-card"><div class="lbl">Mercado Pago</div><div class="val">${fmt(c.byMethod.mercado)}</div></div>
+      <div class="cash-card"><div class="lbl">Transferencia</div><div class="val">${fmt(c.byMethod.transfer)}</div></div>
+      <div class="cash-card"><div class="lbl">N° ventas</div><div class="val">${c.orders||0}</div></div>
+    </div>
+    <div class="cash-total">
+      <div class="lbl">VENTAS DEL DÍA</div>
+      <div class="val">${fmt(total)}</div>
+      <div class="lbl" style="margin-top:8px">Caja en mano estimada: ${fmt(total+c.opening)}</div>
+    </div>
+    <button class="btn-secondary" id="btnCloseCash" style="margin-top:16px">CERRAR CAJA</button>`;
+  document.getElementById('btnCloseCash').onclick=()=>{
+    if(!confirm('¿Cerrar la caja? Esto resetea las ventas del día.'))return;
+    State.cash.byMethod={cash:0,debit:0,credit:0,mercado:0,transfer:0};
+    State.cash.orders=0;
+    Store.save();renderCashView();toast('Caja cerrada');
+  };
+}
+
+/* ============ CONFIG VIEW ============ */
+function renderConfigView(){
+  const v=document.getElementById('viewConfig');
+  v.innerHTML=`<h2>⚙ Configuración</h2>
+    <div class="cash-card" style="max-width:420px">
+      <div class="lbl">Apertura de caja</div>
+      <div class="val">${fmt(State.cash.opening)}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input type="number" id="cfgOpening" value="${State.cash.opening}" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text)">
+        <button class="btn-ok" id="cfgSaveOpening">Guardar</button>
+      </div>
+      <div class="lbl" style="margin-top:16px">Caja abierta desde</div>
+      <div class="val" style="font-size:18px">${State.config.openTime}</div>
+      <button class="btn-secondary" id="cfgReset" style="margin-top:16px">Restablecer datos de demo</button>
+    </div>`;
+  document.getElementById('cfgSaveOpening').onclick=()=>{
+    State.cash.opening=+document.getElementById('cfgOpening').value||0;Store.save();toast('Apertura actualizada');
+  };
+  document.getElementById('cfgReset').onclick=()=>{
+    if(!confirm('¿Restablecer todos los datos de la demo?'))return;
+    localStorage.removeItem('pos_state');location.reload();
+  };
+}
+
+/* ============ VIEW SWITCH ============ */
+const UI={activeCat:'all',orderFilter:'all',current:'pos'};
+function switchView(name){
+  UI.current=name;
+  const navs={pos:'navPos',orders:'navOrders',kitchen:'navKitchen',cash:'navCash',config:'navConfig'};
+  document.querySelectorAll('.header-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(navs[name]).classList.add('active');
+  // toggle main pos view / secondary views
+  const isPos=name==='pos';
+  document.querySelector('.main').style.display=isPos?'flex':'none';
+  ['viewOrders','viewKitchen','viewCash','viewConfig'].forEach(v=>document.getElementById(v).classList.toggle('active',v==='view'+name.charAt(0).toUpperCase()+name.slice(1)));
+  if(name==='orders')renderOrdersView();
+  if(name==='kitchen')renderKitchenView();
+  if(name==='cash')renderCashView();
+  if(name==='config')renderConfigView();
+}
+document.getElementById('navPos').onclick=()=>switchView('pos');
+document.getElementById('navOrders').onclick=()=>switchView('orders');
+document.getElementById('navKitchen').onclick=()=>switchView('kitchen');
+document.getElementById('navCash').onclick=()=>switchView('cash');
+document.getElementById('navConfig').onclick=()=>switchView('config');
+
+/* ============ KEYBOARD SHORTCUTS ============ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModals();return}
+  if(e.key.startsWith('F')){
+    e.preventDefault();
+    const k={F1:'new',F2:'search',F3:'charge',F4:'cancel',F5:'orders',F6:'kitchen'}[e.key];
+    if(k==='new'){State.currentOrder=null;newOrder();switchView('pos');toast('Nuevo pedido');}
+    else if(k==='search'){switchView('pos');document.getElementById('searchInput').focus();}
+    else if(k==='charge'){if(State.currentOrder&&State.currentOrder.items.length){openCustomerModal()}}
+    else if(k==='cancel'){if(State.currentOrder&&State.currentOrder.items.length)cancelOrder()}
+    else if(k==='orders')switchView('orders');
+    else if(k==='kitchen')switchView('kitchen');
+  }
+});
+
+/* ============ CLOCK ============ */
+function tickClock(){
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(tickClock,30000);tickClock();
+
+/* ============ INIT ============ */
+PRODUCTS.init();
+Store.load();
+renderCategories();
+renderProducts();
+newOrder();
+document.getElementById('searchInput').addEventListener('input',renderProducts);
+document.getElementById('btnClear').onclick=()=>{document.getElementById('searchInput').value='';renderProducts()};
+</script>
+</body>
+</html>
