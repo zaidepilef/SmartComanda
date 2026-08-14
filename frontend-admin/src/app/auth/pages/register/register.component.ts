@@ -1,4 +1,4 @@
-import { Component, inject, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { NgClass } from '@angular/common';
 import {
   AbstractControl,
@@ -48,9 +48,9 @@ export class RegisterComponent {
     { validators: mustMatch('password', 'confirmPassword') }
   );
 
-  error = '';
-  loading = false;
-  registered = false;
+  readonly error = signal('');
+  readonly loading = signal(false);
+  readonly registered = signal(false);
 
   constructor() {
     if (this.#authService.isAuthenticated()) {
@@ -67,7 +67,7 @@ export class RegisterComponent {
   }
 
   get canSubmit(): boolean {
-    return this.form.valid && this.captchaToken !== null && !this.loading;
+    return this.form.valid && this.captchaToken !== null && !this.loading();
   }
 
   submit(): void {
@@ -75,8 +75,8 @@ export class RegisterComponent {
       return;
     }
 
-    this.error = '';
-    this.loading = true;
+    this.error.set('');
+    this.loading.set(true);
 
     const { firstName, lastName, email, password } = this.form.getRawValue();
 
@@ -84,11 +84,11 @@ export class RegisterComponent {
       .register({ firstName, lastName, email, password, captchaToken: this.captchaToken })
       .subscribe({
         next: () => {
-          this.registered = true;
+          this.registered.set(true);
         },
         error: (err) => {
-          this.loading = false;
-          this.error = authErrorMessage(err.error?.error);
+          this.loading.set(false);
+          this.error.set(authErrorMessage(err.error?.error));
           this.turnstile().reset();
         }
       });

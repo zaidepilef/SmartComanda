@@ -4,7 +4,7 @@
   <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div class="p-6">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm text-gray-500 dark:text-slate-400">{{ tenants.length }} tenant(s)</span>
+        <span class="text-sm text-gray-500 dark:text-slate-400">{{ tenants().length }} tenant(s)</span>
         <button
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
           (click)="startCreate()"
@@ -13,9 +13,9 @@
         </button>
       </div>
 
-      @if (error) {
+      @if (error()) {
         <div class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">
-          {{ error }}
+          {{ error() }}
         </div>
       }
 
@@ -73,9 +73,9 @@
             <button
               type="submit"
               class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-              [disabled]="saving"
+              [disabled]="saving()"
             >
-              {{ saving ? 'Guardando...' : 'Guardar' }}
+              {{ saving() ? 'Guardando...' : 'Guardar' }}
             </button>
             <button
               type="button"
@@ -88,7 +88,7 @@
         </form>
       }
 
-      @if (creating) {
+      @if (creating()) {
         <form class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50" (ngSubmit)="saveCreate()">
           <h6 class="mb-3 font-semibold text-gray-900 dark:text-white">Nuevo tenant</h6>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -142,9 +142,9 @@
             <button
               type="submit"
               class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-              [disabled]="saving"
+              [disabled]="saving()"
             >
-              {{ saving ? 'Creando...' : 'Crear' }}
+              {{ saving() ? 'Creando...' : 'Crear' }}
             </button>
             <button
               type="button"
@@ -170,7 +170,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
-            @for (tenant of tenants; track tenant._id) {
+            @for (tenant of tenants(); track tenant._id) {
               <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
                 <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ tenant.name }}</td>
                 <td class="px-4 py-3 text-gray-700 dark:text-slate-300">{{ tenant.rut ?? '—' }}</td>
@@ -195,7 +195,7 @@
             } @empty {
               <tr>
                 <td colspan="6" class="px-4 py-4 text-center text-gray-500 dark:text-slate-400">
-                  {{ loading ? 'Cargando...' : 'No hay tenants.' }}
+                  {{ loading() ? 'Cargando...' : 'No hay tenants.' }}
                 </td>
               </tr>
             }

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Tenant, TenantService } from '../../services/tenants.service';
@@ -26,72 +26,48 @@ const EMPTY_FORM: TenantForm = {
 export class TenantsComponent implements OnInit {
   readonly #tenantService = inject(TenantService);
 
-  tenants: Tenant[] = [];
-  loading = false;
-  error = '';
-  editing: Tenant | null = null;
-  creating = false;
-  newTenant: TenantForm = { ...EMPTY_FORM };
-  saving = false;
+  readonly tenants = signal<Tenant[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly saving = signal(false);
+  readonly creating = signal(false);
 
-  constructor() {
-    //this.#load();
-  }
+  editing: Tenant | null = null;
+  newTenant: TenantForm = { ...EMPTY_FORM };
 
   ngOnInit(): void {
     this.#load();
   }
 
-  #_load(): void {
-    this.loading = true;
-    this.error = '';
+  #load(): void {
+    this.loading.set(true);
+    this.error.set('');
 
     this.#tenantService.list().subscribe({
       next: (tenants) => {
-        this.tenants = tenants;
-        this.loading = false;
+        this.tenants.set(tenants);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudieron cargar los tenants.';
-      }
-    });
-  }
-
-  #load(): void {
-    console.log('🔵 LOAD');
-    this.loading = true;
-    this.error = '';
-    this.#tenantService.list().subscribe({
-      next: (tenants) => {
-        console.log('🟢 API RESPONDIÓ', tenants);
-        this.tenants = tenants;
-        this.loading = false;
-        console.log('🟡 ESTADO FINAL', {
-          tenants: this.tenants,
-          loading: this.loading
-        });
-      },error: (err) => {
-        console.error('🔴 ERROR', err);
-        this.loading = false;
-        this.error = 'No se pudieron cargar los tenants.';
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar los tenants.');
       }
     });
   }
 
   startCreate(): void {
     this.newTenant = { ...EMPTY_FORM };
-    this.creating = true;
-    this.error = '';
+    this.creating.set(true);
+    this.error.set('');
   }
 
   cancelCreate(): void {
-    this.creating = false;
+    this.creating.set(false);
   }
 
   saveCreate(): void {
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
 
     const { name, rut, razonSocial, active } = this.newTenant;
 
@@ -104,13 +80,13 @@ export class TenantsComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.saving = false;
-          this.creating = false;
+          this.saving.set(false);
+          this.creating.set(false);
           this.#load();
         },
         error: (err) => {
-          this.saving = false;
-          this.error = err.error?.error ?? 'No se pudo crear el tenant.';
+          this.saving.set(false);
+          this.error.set(err.error?.error ?? 'No se pudo crear el tenant.');
         }
       });
   }
@@ -128,8 +104,8 @@ export class TenantsComponent implements OnInit {
       return;
     }
 
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
 
     const { _id, name, rut, razonSocial, active } = this.editing;
 
@@ -142,13 +118,13 @@ export class TenantsComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.saving = false;
+          this.saving.set(false);
           this.editing = null;
           this.#load();
         },
         error: (err) => {
-          this.saving = false;
-          this.error = err.error?.error ?? 'No se pudo guardar el tenant.';
+          this.saving.set(false);
+          this.error.set(err.error?.error ?? 'No se pudo guardar el tenant.');
         }
       });
   }

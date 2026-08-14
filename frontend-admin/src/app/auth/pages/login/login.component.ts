@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -20,8 +20,8 @@ export class LoginComponent {
     password: ['', Validators.required]
   });
 
-  error = '';
-  loading = false;
+  readonly error = signal('');
+  readonly loading = signal(false);
 
   constructor() {
     if (this.#authService.isAuthenticated()) {
@@ -35,8 +35,8 @@ export class LoginComponent {
       return;
     }
 
-    this.error = '';
-    this.loading = true;
+    this.error.set('');
+    this.loading.set(true);
 
     const { email, password } = this.form.getRawValue();
 
@@ -46,8 +46,8 @@ export class LoginComponent {
         void this.#router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.loading = false;
-        this.error = authErrorMessage(err.error?.error);
+        this.loading.set(false);
+        this.error.set(authErrorMessage(err.error?.error));
       }
     });
   }

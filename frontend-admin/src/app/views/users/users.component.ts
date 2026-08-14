@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CREATABLE_ROLES, User, UserRole, UserService, UserStatus } from './user.service';
@@ -59,45 +59,42 @@ export class UsersComponent  implements OnInit {
   readonly #userService = inject(UserService);
   readonly #tenantService = inject(TenantService);
 
-  users: User[] = [];
+  readonly users = signal<User[]>([]);
+  readonly total = signal(0);
+  readonly totalPages = signal(1);
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly saving = signal(false);
+  readonly creating = signal(false);
+
   statusFilter = '';
   page = 1;
   limit = 10;
-  total = 0;
-  totalPages = 1;
-  loading = false;
-  error = '';
   editing: User | null = null;
-  saving = false;
-  creating = false;
   newUser: NewUserForm = { ...EMPTY_NEW_USER };
   tenants: Tenant[] = [];
   creatableRoles = CREATABLE_ROLES;
 
-  constructor() {
-  }
-
   ngOnInit(): void {
     this.#load();
-    //this.#loadTenants();
   }
 
   #load(): void {
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
     this.#userService
       .list({ page: this.page, limit: this.limit, status: this.statusFilter })
       .subscribe({
         next: (response) => {
-          this.users = response.data;
-          this.total = response.pagination.total;
-          this.totalPages = response.pagination.totalPages;
-          this.loading = false;
+          this.users.set(response.data);
+          this.total.set(response.pagination.total);
+          this.totalPages.set(response.pagination.totalPages);
+          this.loading.set(false);
         },
         error: () => {
-          this.loading = false;
-          this.error = 'No se pudieron cargar los usuarios.';
+          this.loading.set(false);
+          this.error.set('No se pudieron cargar los usuarios.');
         }
       });
   }
@@ -139,7 +136,7 @@ export class UsersComponent  implements OnInit {
   }
 
   nextPage(): void {
-    if (this.page < this.totalPages) {
+    if (this.page < this.totalPages()) {
       this.page += 1;
       this.#load();
     }
@@ -154,12 +151,12 @@ export class UsersComponent  implements OnInit {
   }
 
   #setStatus(user: User, status: UserStatus): void {
-    this.error = '';
+    this.error.set('');
 
     this.#userService.update(user._id, { status }).subscribe({
       next: () => this.#load(),
       error: (err) => {
-        this.error = err.error?.error ?? 'No se pudo actualizar el usuario.';
+        this.error.set(err.error?.error ?? 'No se pudo actualizar el usuario.');
       }
     });
   }
@@ -174,17 +171,17 @@ export class UsersComponent  implements OnInit {
 
   startCreate(): void {
     this.newUser = { ...EMPTY_NEW_USER };
-    this.creating = true;
-    this.error = '';
+    this.creating.set(true);
+    this.error.set('');
   }
 
   cancelCreate(): void {
-    this.creating = false;
+    this.creating.set(false);
   }
 
   saveCreate(): void {
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
 
     const { firstName, lastName, email, password, status, role, tenantId } = this.newUser;
 
@@ -200,13 +197,13 @@ export class UsersComponent  implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.saving = false;
-          this.creating = false;
+          this.saving.set(false);
+          this.creating.set(false);
           this.#load();
         },
         error: (err) => {
-          this.saving = false;
-          this.error = err.error?.error ?? 'No se pudo crear el usuario.';
+          this.saving.set(false);
+          this.error.set(err.error?.error ?? 'No se pudo crear el usuario.');
         }
       });
   }
@@ -216,8 +213,8 @@ export class UsersComponent  implements OnInit {
       return;
     }
 
-    this.saving = true;
-    this.error = '';
+    this.saving.set(true);
+    this.error.set('');
 
     const { _id, firstName, lastName, email, status, role, tenantId } = this.editing;
 
@@ -233,13 +230,13 @@ export class UsersComponent  implements OnInit {
 
     this.#userService.update(_id, payload).subscribe({
       next: () => {
-        this.saving = false;
+        this.saving.set(false);
         this.editing = null;
         this.#load();
       },
       error: (err) => {
-        this.saving = false;
-        this.error = err.error?.error ?? 'No se pudo guardar el usuario.';
+        this.saving.set(false);
+        this.error.set(err.error?.error ?? 'No se pudo guardar el usuario.');
       }
     });
   }
