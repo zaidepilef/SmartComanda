@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Tenant, TenantService } from '../../services/tenants.service';
@@ -22,7 +22,8 @@ const EMPTY_FORM: TenantForm = {
   imports: [FormsModule],
   templateUrl: './tenants.component.html'
 })
-export class TenantsComponent {
+
+export class TenantsComponent implements OnInit {
   readonly #tenantService = inject(TenantService);
 
   tenants: Tenant[] = [];
@@ -34,19 +35,44 @@ export class TenantsComponent {
   saving = false;
 
   constructor() {
+    //this.#load();
+  }
+
+  ngOnInit(): void {
     this.#load();
   }
 
-  #load(): void {
+  #_load(): void {
     this.loading = true;
     this.error = '';
 
-    this.#tenantService.list(false).subscribe({
+    this.#tenantService.list().subscribe({
       next: (tenants) => {
         this.tenants = tenants;
         this.loading = false;
       },
       error: () => {
+        this.loading = false;
+        this.error = 'No se pudieron cargar los tenants.';
+      }
+    });
+  }
+
+  #load(): void {
+    console.log('🔵 LOAD');
+    this.loading = true;
+    this.error = '';
+    this.#tenantService.list().subscribe({
+      next: (tenants) => {
+        console.log('🟢 API RESPONDIÓ', tenants);
+        this.tenants = tenants;
+        this.loading = false;
+        console.log('🟡 ESTADO FINAL', {
+          tenants: this.tenants,
+          loading: this.loading
+        });
+      },error: (err) => {
+        console.error('🔴 ERROR', err);
         this.loading = false;
         this.error = 'No se pudieron cargar los tenants.';
       }

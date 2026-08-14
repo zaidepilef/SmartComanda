@@ -1,15 +1,8 @@
 import { Component } from '@angular/core';
-import {
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  TableDirective
-} from '@coreui/angular';
 
 @Component({
   selector: 'app-tables',
-  templateUrl: './tables.component.html',
-  imports: [CardComponent, CardBodyComponent, CardHeaderComponent, TableDirective]
+  templateUrl: './tables.component.html'
 })
 export class TablesComponent {
   public products = [

@@ -1,74 +1,45 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-
-import {
-  AvatarComponent,
-  BreadcrumbRouterComponent,
-  ColorModeService,
-  ContainerComponent,
-  DropdownComponent,
-  DropdownDividerDirective,
-  DropdownHeaderDirective,
-  DropdownItemDirective,
-  DropdownMenuDirective,
-  DropdownToggleDirective,
-  HeaderComponent,
-  HeaderNavComponent,
-  HeaderTogglerDirective,
-  NavItemComponent,
-  NavLinkDirective,
-  SidebarToggleDirective
-} from '@coreui/angular';
-
-import { IconDirective } from '@coreui/icons-angular';
+import { Component, inject, output, signal, input } from '@angular/core';
 
 import { AuthService } from '../../../auth/auth.service';
+import { IconComponent, AppIconName } from '../../../icons/icon.component';
+import { ThemeMode, ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
-  imports: [
-    ContainerComponent,
-    HeaderTogglerDirective,
-    SidebarToggleDirective,
-    IconDirective,
-    HeaderNavComponent,
-    NavItemComponent,
-    NavLinkDirective,
-    RouterLink,
-    RouterLinkActive,
-    NgTemplateOutlet,
-    BreadcrumbRouterComponent,
-    DropdownComponent,
-    DropdownToggleDirective,
-    AvatarComponent,
-    DropdownMenuDirective,
-    DropdownHeaderDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective
-  ]
+  imports: [IconComponent]
 })
-export class DefaultHeaderComponent extends HeaderComponent {
-  readonly #colorModeService = inject(ColorModeService);
+export class DefaultHeaderComponent {
   readonly #authService = inject(AuthService);
-  readonly colorMode = this.#colorModeService.colorMode;
-  readonly user = this.#authService.user;
+  readonly #themeService = inject(ThemeService);
 
-  readonly colorModes = [
-    { name: 'light', text: 'Light', icon: 'cilSun' },
-    { name: 'dark', text: 'Dark', icon: 'cilMoon' },
-    { name: 'auto', text: 'Auto', icon: 'cilContrast' }
+  readonly sidebarOpen = input(false);
+  readonly toggleSidebar = output();
+
+  readonly user = this.#authService.user;
+  readonly themeMode = this.#themeService.mode;
+
+  readonly userMenuOpen = signal(false);
+  readonly themeMenuOpen = signal(false);
+
+  readonly themeModes: { mode: ThemeMode; label: string; icon: AppIconName }[] = [
+    { mode: 'light', label: 'Light', icon: 'sun' },
+    { mode: 'dark', label: 'Dark', icon: 'moon' },
+    { mode: 'auto', label: 'Auto', icon: 'contrast' }
   ];
 
-  readonly icons = computed(() => {
-    const currentMode = this.colorMode();
-    return this.colorModes.find((mode) => mode.name === currentMode)?.icon ?? 'cilSun';
-  });
-
   constructor() {
-    super();
     this.#authService.loadProfile();
+  }
+
+  setTheme(mode: ThemeMode): void {
+    this.#themeService.setMode(mode);
+    this.themeMenuOpen.set(false);
+  }
+
+  closeMenus(): void {
+    this.userMenuOpen.set(false);
+    this.themeMenuOpen.set(false);
   }
 
   onLogout(): void {
@@ -77,6 +48,4 @@ export class DefaultHeaderComponent extends HeaderComponent {
       error: () => this.#authService.clearSessionAndRedirect()
     });
   }
-
-  sidebarId = input('sidebar1');
 }

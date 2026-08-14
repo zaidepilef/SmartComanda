@@ -1,19 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { NgScrollbar } from 'ngx-scrollbar';
+import { Component, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import {
-  ContainerComponent,
-  ShadowOnScrollDirective,
-  SidebarBrandComponent,
-  SidebarComponent,
-  SidebarFooterComponent,
-  SidebarHeaderComponent,
-  SidebarNavComponent,
-  SidebarToggleDirective,
-  SidebarTogglerDirective
-} from '@coreui/angular';
-
+import { IconComponent } from '../../icons/icon.component';
 import { DefaultFooterComponent } from './default-footer/default-footer.component';
 import { DefaultHeaderComponent } from './default-header/default-header.component';
 import { navItems } from './_nav';
@@ -21,24 +9,20 @@ import { navItems } from './_nav';
 @Component({
   selector: 'app-default-layout',
   templateUrl: './default-layout.component.html',
-  styleUrls: ['./default-layout.component.scss'],
   imports: [
-    SidebarComponent,
-    SidebarHeaderComponent,
-    SidebarBrandComponent,
-    SidebarNavComponent,
-    SidebarFooterComponent,
-    SidebarToggleDirective,
-    SidebarTogglerDirective,
-    ContainerComponent,
-    DefaultFooterComponent,
-    DefaultHeaderComponent,
-    NgScrollbar,
     RouterOutlet,
     RouterLink,
-    ShadowOnScrollDirective
+    RouterLinkActive,
+    IconComponent,
+    DefaultHeaderComponent,
+    DefaultFooterComponent
   ]
 })
 export class DefaultLayoutComponent {
-  public navItems = [...navItems];
+  public readonly navItems = [...navItems];
+  readonly sidebarOpen = signal(false);
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
 }

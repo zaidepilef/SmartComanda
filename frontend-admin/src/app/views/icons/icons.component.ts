@@ -1,48 +1,32 @@
 import { Component } from '@angular/core';
-import {
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
-import { IconDirective } from '@coreui/icons-angular';
+
+import { AppIconName, IconComponent } from '../../icons/icon.component';
 
 @Component({
   selector: 'app-icons',
   templateUrl: './icons.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    IconDirective
-  ]
+  imports: [IconComponent]
 })
 export class IconsComponent {
-  public icons = [
-    'cilSpeedometer',
-    'cilList',
-    'cilPencil',
-    'cilStar',
-    'cilBell',
-    'cilEnvelopeOpen',
-    'cilMenu',
-    'cilMoon',
-    'cilSun',
-    'cilContrast',
-    'cilUser',
-    'cilSettings',
-    'cilLockLocked',
-    'cilAccountLogout',
-    'cilBasket',
-    'cilDollar',
-    'cilCalculator',
-    'cilNotes',
-    'cilChart',
-    'cilChartPie',
-    'cilTask',
-    'cilMagnifyingGlass'
+  public icons: AppIconName[] = [
+    'dashboard',
+    'list',
+    'pencil',
+    'star',
+    'bell',
+    'menu',
+    'moon',
+    'sun',
+    'contrast',
+    'user',
+    'settings',
+    'lock',
+    'logout',
+    'basket',
+    'dollar',
+    'calculator',
+    'notes',
+    'building',
+    'users'
   ];
 }

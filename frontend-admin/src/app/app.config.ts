@@ -9,7 +9,6 @@ import {
   withRouterConfig,
   withViewTransitions
 } from '@angular/router';
-import { IconSetService } from '@coreui/icons-angular';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './auth/auth.interceptor';
@@ -30,7 +29,6 @@ export const appConfig: ApplicationConfig = {
       withHashLocation()
     ),
     provideHttpClient(withInterceptors([authInterceptor])),
-    IconSetService,
     provideAnimationsAsync()
   ]
 };

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CREATABLE_ROLES, User, UserRole, UserService, UserStatus } from './user.service';
@@ -11,9 +11,9 @@ const STATUS_LABELS: Record<UserStatus, string> = {
 };
 
 const STATUS_BADGES: Record<UserStatus, string> = {
-  pending: 'text-bg-warning',
-  active: 'text-bg-success',
-  inactive: 'text-bg-secondary',
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200',
+  active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200',
+  inactive: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300',
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -24,10 +24,10 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const ROLE_BADGES: Record<UserRole, string> = {
-  sysadmin: 'text-bg-dark',
-  owner: 'text-bg-primary',
-  admin: 'text-bg-info',
-  cashier: 'text-bg-secondary',
+  sysadmin: 'bg-gray-900 text-white dark:bg-white dark:text-gray-900',
+  owner: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
+  admin: 'bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200',
+  cashier: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300',
 };
 
 interface NewUserForm {
@@ -55,12 +55,12 @@ const EMPTY_NEW_USER: NewUserForm = {
   imports: [FormsModule],
   templateUrl: './users.component.html'
 })
-export class UsersComponent {
+export class UsersComponent  implements OnInit {
   readonly #userService = inject(UserService);
   readonly #tenantService = inject(TenantService);
 
   users: User[] = [];
-  statusFilter = 'pending';
+  statusFilter = '';
   page = 1;
   limit = 10;
   total = 0;
@@ -75,8 +75,11 @@ export class UsersComponent {
   creatableRoles = CREATABLE_ROLES;
 
   constructor() {
+  }
+
+  ngOnInit(): void {
     this.#load();
-    this.#loadTenants();
+    //this.#loadTenants();
   }
 
   #load(): void {
@@ -112,7 +115,7 @@ export class UsersComponent {
   }
 
   roleBadge(role: UserRole | undefined): string {
-    return role ? ROLE_BADGES[role] : 'text-bg-light';
+    return role ? ROLE_BADGES[role] : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300';
   }
 
   #loadTenants(): void {

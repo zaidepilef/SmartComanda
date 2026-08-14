@@ -1,14 +1,14 @@
 <div class="p-3">
-  <h2 class="fw-semibold mb-3">Usuarios</h2>
+  <h2 class="mb-3 text-xl font-semibold text-gray-900 dark:text-white">Usuarios</h2>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="p-6">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <label class="form-label mb-1" for="statusFilter">Estado</label>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="statusFilter">Estado</label>
           <select
             id="statusFilter"
-            class="form-select w-auto"
+            class="block w-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             [(ngModel)]="statusFilter"
             (ngModelChange)="applyFilter()"
           >
@@ -18,56 +18,63 @@
             <option value="">Todos</option>
           </select>
         </div>
-        <span class="text-body-secondary">{{ total }} usuario(s)</span>
-        <button class="btn btn-primary" (click)="startCreate()">Nuevo usuario</button>
+        <span class="text-sm text-gray-500 dark:text-slate-400">{{ total }} usuario(s)</span>
+        <button
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+          (click)="startCreate()"
+        >
+          Nuevo usuario
+        </button>
       </div>
 
       @if (error) {
-        <div class="alert alert-danger py-2" role="alert">{{ error }}</div>
+        <div class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">
+          {{ error }}
+        </div>
       }
 
       @if (editing) {
-        <form class="border rounded p-3 mb-3 bg-body-tertiary" (ngSubmit)="saveEdit()">
-          <h6 class="fw-semibold mb-3">Editar usuario</h6>
-          <div class="row g-3">
-            <div class="col-12 col-sm-6 col-md-3">
-              <label class="form-label" for="editFirstName">Nombre</label>
+        <form class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50" (ngSubmit)="saveEdit()">
+          <h6 class="mb-3 font-semibold text-gray-900 dark:text-white">Editar usuario</h6>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editFirstName">Nombre</label>
               <input
                 id="editFirstName"
                 type="text"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="editing.firstName"
                 name="editFirstName"
                 required
               />
             </div>
-            <div class="col-12 col-sm-6 col-md-3">
-              <label class="form-label" for="editLastName">Apellido</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editLastName">Apellido</label>
               <input
                 id="editLastName"
                 type="text"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="editing.lastName"
                 name="editLastName"
                 required
               />
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="editEmail">Email</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editEmail">Email</label>
               <input
                 id="editEmail"
                 type="email"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="editing.email"
                 name="editEmail"
                 required
               />
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="editStatus">Estado</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editStatus">Estado</label>
               <select
                 id="editStatus"
-                class="form-select"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 [(ngModel)]="editing.status"
                 name="editStatus"
               >
@@ -77,11 +84,11 @@
               </select>
             </div>
             @if (editing.role !== 'sysadmin') {
-              <div class="col-12 col-md-3">
-                <label class="form-label" for="editRole">Rol</label>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editRole">Rol</label>
                 <select
                   id="editRole"
-                  class="form-select"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                   [(ngModel)]="editing.role"
                   name="editRole"
                 >
@@ -90,11 +97,11 @@
                   }
                 </select>
               </div>
-              <div class="col-12 col-md-3">
-                <label class="form-label" for="editTenant">Tenant</label>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editTenant">Tenant</label>
                 <select
                   id="editTenant"
-                  class="form-select"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                   [(ngModel)]="editing.tenantId"
                   name="editTenant"
                 >
@@ -106,11 +113,19 @@
               </div>
             }
           </div>
-          <div class="d-flex gap-2 mt-3">
-            <button type="submit" class="btn btn-primary" [disabled]="saving">
+          <div class="mt-3 flex gap-2">
+            <button
+              type="submit"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+              [disabled]="saving"
+            >
               {{ saving ? 'Guardando...' : 'Guardar' }}
             </button>
-            <button type="button" class="btn btn-outline-secondary" (click)="cancelEdit()">
+            <button
+              type="button"
+              class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              (click)="cancelEdit()"
+            >
               Cancelar
             </button>
           </div>
@@ -118,59 +133,59 @@
       }
 
       @if (creating) {
-        <form class="border rounded p-3 mb-3 bg-body-tertiary" (ngSubmit)="saveCreate()">
-          <h6 class="fw-semibold mb-3">Nuevo usuario</h6>
-          <div class="row g-3">
-            <div class="col-12 col-sm-6 col-md-3">
-              <label class="form-label" for="newFirstName">Nombre</label>
+        <form class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50" (ngSubmit)="saveCreate()">
+          <h6 class="mb-3 font-semibold text-gray-900 dark:text-white">Nuevo usuario</h6>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newFirstName">Nombre</label>
               <input
                 id="newFirstName"
                 type="text"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="newUser.firstName"
                 name="newFirstName"
                 required
               />
             </div>
-            <div class="col-12 col-sm-6 col-md-3">
-              <label class="form-label" for="newLastName">Apellido</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newLastName">Apellido</label>
               <input
                 id="newLastName"
                 type="text"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="newUser.lastName"
                 name="newLastName"
                 required
               />
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="newEmail">Email</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newEmail">Email</label>
               <input
                 id="newEmail"
                 type="email"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="newUser.email"
                 name="newEmail"
                 required
               />
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="newPassword">Contraseña</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newPassword">Contraseña</label>
               <input
                 id="newPassword"
                 type="password"
-                class="form-control"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 [(ngModel)]="newUser.password"
                 name="newPassword"
                 required
                 minlength="8"
               />
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="newStatus">Estado</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newStatus">Estado</label>
               <select
                 id="newStatus"
-                class="form-select"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 [(ngModel)]="newUser.status"
                 name="newStatus"
               >
@@ -179,11 +194,11 @@
                 <option value="inactive">Inactivo</option>
               </select>
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="newRole">Rol</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newRole">Rol</label>
               <select
                 id="newRole"
-                class="form-select"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 [(ngModel)]="newUser.role"
                 name="newRole"
                 required
@@ -193,11 +208,11 @@
                 }
               </select>
             </div>
-            <div class="col-12 col-md-3">
-              <label class="form-label" for="newTenant">Tenant</label>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newTenant">Tenant</label>
               <select
                 id="newTenant"
-                class="form-select"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 [(ngModel)]="newUser.tenantId"
                 name="newTenant"
               >
@@ -208,51 +223,59 @@
               </select>
             </div>
           </div>
-          <div class="d-flex gap-2 mt-3">
-            <button type="submit" class="btn btn-primary" [disabled]="saving">
+          <div class="mt-3 flex gap-2">
+            <button
+              type="submit"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+              [disabled]="saving"
+            >
               {{ saving ? 'Guardando...' : 'Crear' }}
             </button>
-            <button type="button" class="btn btn-outline-secondary" (click)="cancelCreate()">
+            <button
+              type="button"
+              class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              (click)="cancelCreate()"
+            >
               Cancelar
             </button>
           </div>
         </form>
       }
 
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
             <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th class="text-end">Acciones</th>
+              <th class="px-4 py-3 font-semibold">Nombre</th>
+              <th class="px-4 py-3 font-semibold">Email</th>
+              <th class="px-4 py-3 font-semibold">Rol</th>
+              <th class="px-4 py-3 font-semibold">Estado</th>
+              <th class="px-4 py-3 text-right font-semibold">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
             @for (user of users; track user._id) {
-              <tr>
-                <td>{{ user.firstName }} {{ user.lastName }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                  <span class="badge {{ roleBadge(user.role) }}">{{ roleLabel(user.role) }}</span>
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ user.firstName }} {{ user.lastName }}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-slate-300">{{ user.email }}</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium {{ roleBadge(user.role) }}">{{ roleLabel(user.role) }}</span>
                 </td>
-                <td><span class="badge {{ badge(user.status) }}">{{ label(user.status) }}</span></td>
-                <td class="text-end">
+                <td class="px-4 py-3"><span class="inline-flex rounded-full px-3 py-1 text-xs font-medium {{ badge(user.status) }}">{{ label(user.status) }}</span></td>
+                <td class="px-4 py-3 text-right">
                   @if (user.status === 'pending') {
-                    <button class="btn btn-sm btn-success me-1" (click)="approve(user)">
+                    <button class="me-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-700" (click)="approve(user)">
                       Aprobar
                     </button>
-                    <button class="btn btn-sm btn-outline-danger me-1" (click)="reject(user)">
+                    <button class="me-1 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950" (click)="reject(user)">
                       Rechazar
                     </button>
                   } @else {
-                    <button class="btn btn-sm btn-outline-secondary me-1" (click)="startEdit(user)">
+                    <button class="me-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" (click)="startEdit(user)">
                       Editar
                     </button>
                     @if (user.status === 'inactive') {
-                      <button class="btn btn-sm btn-outline-success" (click)="approve(user)">
+                      <button class="rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950" (click)="approve(user)">
                         Reactivar
                       </button>
                     }
@@ -261,7 +284,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center text-body-secondary py-4">
+                <td colspan="5" class="px-4 py-4 text-center text-gray-500 dark:text-slate-400">
                   {{ loading ? 'Cargando...' : 'No hay usuarios para este filtro.' }}
                 </td>
               </tr>
@@ -270,18 +293,22 @@
         </table>
       </div>
 
-      <nav aria-label="Paginación de usuarios">
-        <ul class="pagination justify-content-center mb-0">
-          <li class="page-item" [class.disabled]="page <= 1">
-            <button class="page-link" (click)="previousPage()">Anterior</button>
-          </li>
-          <li class="page-item disabled">
-            <span class="page-link">Página {{ page }} de {{ totalPages }}</span>
-          </li>
-          <li class="page-item" [class.disabled]="page >= totalPages">
-            <button class="page-link" (click)="nextPage()">Siguiente</button>
-          </li>
-        </ul>
+      <nav class="mt-4 flex items-center justify-center gap-2" aria-label="Paginación de usuarios">
+        <button
+          class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          (click)="previousPage()"
+          [disabled]="page <= 1"
+        >
+          Anterior
+        </button>
+        <span class="px-2 text-sm text-gray-600 dark:text-slate-400">Página {{ page }} de {{ totalPages }}</span>
+        <button
+          class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          (click)="nextPage()"
+          [disabled]="page >= totalPages"
+        >
+          Siguiente
+        </button>
       </nav>
     </div>
   </div>

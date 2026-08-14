@@ -1,15 +1,15 @@
-/* You can add global styles to this file, and also import other style files */
+@use "tailwindcss";
 
-// Import styles with default layout.
-@use "@coreui/coreui/scss/coreui" as * with (
-  $enable-deprecation-messages: false
-);
+@custom-variant dark (&:where(.dark, .dark *));
 
-// Import Chart.js custom tooltips styles
-@use "@coreui/chartjs/scss/coreui-chartjs";
+@source "../app";
+@source "../index.html";
 
-// Custom styles for this theme
-@use "theme";
+html {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
 
-// Custom app styles (scrollbar + chart tweaks)
-@use "custom";
+body {
+  @apply bg-gray-100 text-gray-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+}

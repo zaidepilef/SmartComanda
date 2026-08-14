@@ -1,4 +1,5 @@
 import { Component, inject, viewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
 import {
   AbstractControl,
   FormBuilder,
@@ -26,7 +27,7 @@ function mustMatch(passwordKey: string, confirmKey: string) {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, TurnstileComponent],
+  imports: [ReactiveFormsModule, RouterLink, TurnstileComponent, NgClass],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {

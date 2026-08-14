@@ -1,34 +1,16 @@
-import { INavData } from '@coreui/angular';
+import { AppIconName } from '../../icons/icon.component';
 
-export const navItems: INavData[] = [
-  {
-    name: 'Dashboard',
-    url: '/dashboard',
-    iconComponent: { name: 'cil-speedometer' }
-  },
-  {
-    name: 'Usuarios',
-    url: '/users',
-    iconComponent: { name: 'cil-people' }
-  },
-  {
-    name: 'Tenants',
-    url: '/tenants',
-    iconComponent: { name: 'cil-building' }
-  },
-  {
-    name: 'Tables',
-    url: '/tables',
-    iconComponent: { name: 'cil-list' }
-  },
-  {
-    name: 'Typography',
-    url: '/typography',
-    iconComponent: { name: 'cil-pencil' }
-  },
-  {
-    name: 'Icons',
-    url: '/icons',
-    iconComponent: { name: 'cil-star' }
-  }
+export interface NavItem {
+  name: string;
+  url: string;
+  icon: AppIconName;
+}
+
+export const navItems: NavItem[] = [
+  { name: 'Dashboard', url: '/dashboard', icon: 'dashboard' },
+  { name: 'Usuarios', url: '/users', icon: 'users' },
+  { name: 'Tenants', url: '/tenants', icon: 'building' },
+  { name: 'Tables', url: '/tables', icon: 'list' },
+  { name: 'Typography', url: '/typography', icon: 'pencil' },
+  { name: 'Icons', url: '/icons', icon: 'star' }
 ];

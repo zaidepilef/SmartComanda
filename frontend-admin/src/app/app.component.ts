@@ -2,9 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 
-import { ColorModeService } from '@coreui/angular';
-import { IconSetService } from '@coreui/icons-angular';
-import { iconSubset } from './icons/icon-subset';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -15,14 +13,9 @@ export class AppComponent {
   title = 'SmartComanda Admin';
 
   readonly #titleService = inject(Title);
-  readonly #colorModeService = inject(ColorModeService);
-  readonly #iconSetService = inject(IconSetService);
+  readonly #themeService = inject(ThemeService);
 
   constructor() {
     this.#titleService.setTitle(this.title);
-    // iconSet singleton
-    this.#iconSetService.icons = { ...iconSubset };
-    this.#colorModeService.localStorageItemName.set('smartcomanda-admin-theme-default');
-    this.#colorModeService.eventName.set('ColorSchemeChange');
   }
 }

@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -6,7 +7,7 @@ import { AuthService, authErrorMessage } from '../../auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgClass],
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
