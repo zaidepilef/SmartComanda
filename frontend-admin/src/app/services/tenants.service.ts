@@ -11,6 +11,7 @@ export interface Tenant {
   razonSocial?: string;
   active: boolean;
   userCount: number;
+  branchCount: number;
 }
 
 export interface TenantCreatePayload {
@@ -37,6 +38,10 @@ export class TenantService {
     return this.#http.get<Tenant[]>(`${environment.apiUrl}/api/tenants`, {
       params: httpParams,
     });
+  }
+
+  listAll(): Observable<Tenant[]> {
+    return this.#http.get<Tenant[]>(`${environment.apiUrl}/api/tenants`);
   }
 
   create(payload: TenantCreatePayload): Observable<Tenant> {

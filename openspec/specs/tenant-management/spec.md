@@ -7,7 +7,7 @@ Provides a minimal tenants read capability for the admin UI — the API lists te
 ## Requirements
 
 ### Requirement: List tenants
-The system SHALL expose `GET /api/tenants` returning the list of tenants, requiring a valid Bearer token. Each tenant SHALL include `_id`, `name`, `rut`, `razonSocial`, `active`, and `userCount` (the number of users whose `tenantId` references the tenant). The list SHALL be tenant-scoped: a non-sysadmin user SHALL only receive the tenant matching its own `tenantId` (at most one), while a `sysadmin` SHALL receive all tenants.
+The system SHALL expose `GET /api/tenants` returning the list of tenants, requiring a valid Bearer token. Each tenant SHALL include `_id`, `name`, `rut`, `razonSocial`, `active`, `userCount` (the number of users whose `tenantId` references the tenant), and `branchCount` (the number of branches whose `tenantId` references the tenant). The list SHALL be tenant-scoped: a non-sysadmin user SHALL only receive the tenant matching its own `tenantId` (at most one), while a `sysadmin` SHALL receive all tenants.
 
 #### Scenario: Listing tenants as sysadmin
 - **WHEN** an authenticated `sysadmin` GETs `/api/tenants`
@@ -28,6 +28,10 @@ The system SHALL expose `GET /api/tenants` returning the list of tenants, requir
 #### Scenario: Counting users per tenant
 - **WHEN** a client GETs `/api/tenants`
 - **THEN** each tenant includes a `userCount` field with the number of users referencing it, without returning user data.
+
+#### Scenario: Counting branches per tenant
+- **WHEN** a client GETs `/api/tenants`
+- **THEN** each tenant includes a `branchCount` field with the number of branches referencing it, without returning branch data.
 
 ### Requirement: Create tenant
 The system SHALL expose `POST /api/tenants`, restricted to users with the `sysadmin` role, to create a tenant with `name` (required), `rut`, `razonSocial`, and `active` fields. The `rut` SHALL follow a lax Chilean format (`\d{1,2}\.\d{3}\.\d{3}-[\dkK]`); no digit-verifier validation is required.

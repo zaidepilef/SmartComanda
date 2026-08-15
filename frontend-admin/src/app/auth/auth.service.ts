@@ -11,6 +11,8 @@ export interface AuthUser {
   lastName: string;
   email: string;
   status: string;
+  role?: 'sysadmin' | 'owner' | 'admin' | 'cashier';
+  tenantId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -54,6 +56,7 @@ export class AuthService {
   readonly user = this.#user.asReadonly();
 
   #profileLoading = false;
+  #profileLoadingPromise: Promise<AuthUser | null> | null = null;
 
   get token(): string | null {
     return localStorage.getItem(TOKEN_KEY);
@@ -96,15 +99,44 @@ export class AuthService {
       return;
     }
 
+    void this.#fetchProfile();
+  }
+
+  loadProfileAndWait(): Promise<AuthUser | null> {
+    if (this.#user() !== null) {
+      return Promise.resolve(this.#user());
+    }
+
+    if (!this.isAuthenticated()) {
+      return Promise.resolve(null);
+    }
+
+    if (this.#profileLoadingPromise === null) {
+      this.#fetchProfile();
+    }
+
+    return this.#profileLoadingPromise ?? Promise.resolve(null);
+  }
+
+  #fetchProfile(): Promise<AuthUser | null> {
     this.#profileLoading = true;
 
-    this.me().subscribe({
-      next: (user) => this.#user.set(user),
-      error: () => {},
-      complete: () => {
-        this.#profileLoading = false;
-      }
+    const promise = new Promise<AuthUser | null>((resolve) => {
+      this.me().subscribe({
+        next: (user) => {
+          this.#user.set(user);
+          resolve(user);
+        },
+        error: () => resolve(null),
+        complete: () => {
+          this.#profileLoading = false;
+          this.#profileLoadingPromise = null;
+        }
+      });
     });
+
+    this.#profileLoadingPromise = promise;
+    return promise;
   }
 
   clearSessionAndRedirect(): void {

@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './auth/auth.guard';
+import { roleGuard } from './auth/role.guard';
+
+const managerRoles = ['sysadmin', 'admin', 'owner'];
 
 export const routes: Routes = [
   {
@@ -49,6 +52,22 @@ export const routes: Routes = [
         loadComponent: () => import('./views/tenants/tenants.component').then((m) => m.TenantsComponent),
         data: {
           title: 'Tenants'
+        }
+      },
+      {
+        path: 'branches',
+        loadComponent: () => import('./views/branches/branches.component').then((m) => m.BranchesComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'Sucursales'
+        }
+      },
+      {
+        path: 'branches/:id',
+        loadComponent: () => import('./views/branch-detail/branch-detail.component').then((m) => m.BranchDetailComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'Detalle de sucursal'
         }
       },
       {

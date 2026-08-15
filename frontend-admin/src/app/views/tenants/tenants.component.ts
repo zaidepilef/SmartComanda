@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { Tenant, TenantService } from '../../services/tenants.service';
 
@@ -25,6 +26,7 @@ const EMPTY_FORM: TenantForm = {
 
 export class TenantsComponent implements OnInit {
   readonly #tenantService = inject(TenantService);
+  readonly #router = inject(Router);
 
   readonly tenants = signal<Tenant[]>([]);
   readonly loading = signal(false);
@@ -93,6 +95,10 @@ export class TenantsComponent implements OnInit {
 
   startEdit(tenant: Tenant): void {
     this.editing = { ...tenant };
+  }
+
+  openBranches(tenant: Tenant): void {
+    void this.#router.navigate(['/branches'], { queryParams: { tenantId: tenant._id } });
   }
 
   cancelEdit(): void {
