@@ -5,6 +5,8 @@ import { roleGuard } from './auth/role.guard';
 
 const managerRoles = ['sysadmin', 'admin', 'owner'];
 
+const checkoutRoles = ['sysadmin', 'admin', 'owner', 'cashier'];
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -68,6 +70,38 @@ export const routes: Routes = [
         canActivate: [authGuard, roleGuard(managerRoles)],
         data: {
           title: 'Detalle de sucursal'
+        }
+      },
+      {
+        path: 'ingredients',
+        loadComponent: () => import('./views/ingredients/ingredients.component').then((m) => m.IngredientsComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'Ingredientes'
+        }
+      },
+      {
+        path: 'dishes',
+        loadComponent: () => import('./views/dishes/dishes.component').then((m) => m.DishesComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'Platos y recetas'
+        }
+      },
+      {
+        path: 'inventory',
+        loadComponent: () => import('./views/inventory/inventory.component').then((m) => m.InventoryComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'Inventario'
+        }
+      },
+      {
+        path: 'checkout',
+        loadComponent: () => import('./views/checkout/checkout.component').then((m) => m.CheckoutComponent),
+        canActivate: [authGuard, roleGuard(checkoutRoles)],
+        data: {
+          title: 'Nuevo pedido'
         }
       },
       {
