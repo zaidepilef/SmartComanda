@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { BranchFlowService } from '../../services/branch-flow.service';
@@ -21,9 +21,9 @@ export class BranchPicker {
 
   readonly tenant = this.#store.tenant;
 
-  branches: Branch[] = [];
-  loading = true;
-  error = '';
+  readonly branches = signal<Branch[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
 
   constructor() {
     const tenantId = this.#store.tenant()?._id;
@@ -35,12 +35,12 @@ export class BranchPicker {
 
     this.#branchService.list(tenantId, 'true').subscribe({
       next: (branches) => {
-        this.branches = branches;
-        this.loading = false;
+        this.branches.set(branches);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudieron cargar las sucursales.';
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar las sucursales.');
       },
     });
   }

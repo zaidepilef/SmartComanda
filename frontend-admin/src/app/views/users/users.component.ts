@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CREATABLE_ROLES, User, UserRole, UserService, UserStatus } from './user.service';
 import { Tenant, TenantService } from '../../services/tenants.service';
+import { Branch, BranchService } from '../../services/branches.service';
 
 const STATUS_LABELS: Record<UserStatus, string> = {
   pending: 'Pendiente',
@@ -39,6 +40,7 @@ interface NewUserForm {
   //role: Exclude<UserRole, 'sysadmin'>;
   role:UserRole;
   tenantId: string;
+  branchId: string;
 }
 
 const EMPTY_NEW_USER: NewUserForm = {
@@ -49,6 +51,7 @@ const EMPTY_NEW_USER: NewUserForm = {
   status: 'active',
   role: 'owner',
   tenantId: '',
+  branchId: '',
 };
 
 @Component({
@@ -59,6 +62,7 @@ const EMPTY_NEW_USER: NewUserForm = {
 export class UsersComponent  implements OnInit {
   readonly #userService = inject(UserService);
   readonly #tenantService = inject(TenantService);
+  readonly #branchService = inject(BranchService);
 
   readonly users = signal<User[]>([]);
   readonly total = signal(0);
@@ -74,11 +78,21 @@ export class UsersComponent  implements OnInit {
   editing: User | null = null;
   newUser: NewUserForm = { ...EMPTY_NEW_USER };
   tenants: Tenant[] = [];
+  branches: Branch[] = [];
   creatableRoles = CREATABLE_ROLES;
 
   ngOnInit(): void {
     this.#load();
     this.#loadTenants();
+    this.#loadBranches();
+  }
+
+  #loadBranches(tenantId?: string): void {
+    this.#branchService.list(tenantId).subscribe({
+      next: (branches) => {
+        this.branches = branches;
+      }
+    });
   }
 
   #load(): void {
@@ -165,6 +179,7 @@ export class UsersComponent  implements OnInit {
 
   startEdit(user: User): void {
     this.editing = { ...user };
+    this.#loadBranches(user.tenantId || undefined);
   }
 
   cancelEdit(): void {
@@ -175,6 +190,19 @@ export class UsersComponent  implements OnInit {
     this.newUser = { ...EMPTY_NEW_USER };
     this.creating.set(true);
     this.error.set('');
+    this.#loadBranches();
+  }
+
+  onNewTenantChange(): void {
+    this.newUser.branchId = '';
+    this.#loadBranches(this.newUser.tenantId || undefined);
+  }
+
+  onEditTenantChange(): void {
+    if (this.editing) {
+      this.editing.branchId = '';
+      this.#loadBranches(this.editing.tenantId || undefined);
+    }
   }
 
   cancelCreate(): void {
@@ -185,7 +213,7 @@ export class UsersComponent  implements OnInit {
     this.saving.set(true);
     this.error.set('');
 
-    const { firstName, lastName, email, password, status, role, tenantId } = this.newUser;
+    const { firstName, lastName, email, password, status, role, tenantId, branchId } = this.newUser;
 
     this.#userService
       .create({
@@ -196,6 +224,7 @@ export class UsersComponent  implements OnInit {
         status,
         role,
         tenantId: tenantId || undefined,
+        branchId: role === 'cashier' ? branchId || undefined : undefined,
       })
       .subscribe({
         next: () => {
@@ -218,7 +247,7 @@ export class UsersComponent  implements OnInit {
     this.saving.set(true);
     this.error.set('');
 
-    const { _id, firstName, lastName, email, status, role, tenantId } = this.editing;
+    const { _id, firstName, lastName, email, status, role, tenantId, branchId } = this.editing;
 
     const payload = { firstName, lastName, email, status };
 
@@ -228,6 +257,10 @@ export class UsersComponent  implements OnInit {
 
     if (tenantId) {
       (payload as { tenantId?: string }).tenantId = tenantId;
+    }
+
+    if (role === 'cashier') {
+      (payload as { branchId?: string }).branchId = branchId || undefined;
     }
 
     this.#userService.update(_id, payload).subscribe({

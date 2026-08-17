@@ -104,6 +104,7 @@
                   class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                   [(ngModel)]="editing.tenantId"
                   name="editTenant"
+                  (ngModelChange)="onEditTenantChange()"
                 >
                   <option value="">Sin tenant</option>
                   @for (tenant of tenants; track tenant._id) {
@@ -111,6 +112,22 @@
                   }
                 </select>
               </div>
+              @if (editing.role === 'cashier') {
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="editBranch">Sucursal</label>
+                  <select
+                    id="editBranch"
+                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    [(ngModel)]="editing.branchId"
+                    name="editBranch"
+                  >
+                    <option value="">Sin sucursal</option>
+                    @for (branch of branches; track branch._id) {
+                      <option [value]="branch._id">{{ branch.name }}</option>
+                    }
+                  </select>
+                </div>
+              }
             }
           </div>
           <div class="mt-3 flex gap-2">
@@ -215,6 +232,7 @@
                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 [(ngModel)]="newUser.tenantId"
                 name="newTenant"
+                (ngModelChange)="onNewTenantChange()"
               >
                 <option value="">Sin tenant</option>
                 @for (tenant of tenants; track tenant._id) {
@@ -222,6 +240,22 @@
                 }
               </select>
             </div>
+            @if (newUser.role === 'cashier') {
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="newBranch">Sucursal</label>
+                <select
+                  id="newBranch"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  [(ngModel)]="newUser.branchId"
+                  name="newBranch"
+                >
+                  <option value="">Sin sucursal</option>
+                  @for (branch of branches; track branch._id) {
+                    <option [value]="branch._id">{{ branch.name }}</option>
+                  }
+                </select>
+              </div>
+            }
           </div>
           <div class="mt-3 flex gap-2">
             <button

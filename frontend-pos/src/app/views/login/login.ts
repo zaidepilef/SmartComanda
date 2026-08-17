@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -23,8 +23,8 @@ export class LoginView {
 
   email = '';
   password = '';
-  loading = false;
-  error = '';
+  readonly loading = signal(false);
+  readonly error = signal('');
 
   #turnstile!: TurnstileComponent;
 
@@ -33,19 +33,19 @@ export class LoginView {
   }
 
   submit(): void {
-    if (this.loading) {
+    if (this.loading()) {
       return;
     }
 
     const captchaToken = this.#turnstile?.token() ?? null;
 
     if (!captchaToken) {
-      this.error = 'Completa la verificación de seguridad.';
+      this.error.set('Completa la verificación de seguridad.');
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
     this.#authService.login(this.email, this.password, captchaToken).subscribe({
       next: ({ token, user }) => {
@@ -54,9 +54,9 @@ export class LoginView {
         this.#afterLogin(user.role);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.#turnstile?.reset();
-        this.error = authErrorMessage(err.error?.error);
+        this.error.set(authErrorMessage(err.error?.error));
       },
     });
   }
@@ -77,8 +77,8 @@ export class LoginView {
         const tenant = tenants[0];
 
         if (!tenant) {
-          this.loading = false;
-          this.error = 'Tu cuenta no tiene un tenant asignado.';
+          this.loading.set(false);
+          this.error.set('Tu cuenta no tiene un tenant asignado.');
           return;
         }
 
@@ -86,8 +86,8 @@ export class LoginView {
         this.#selectBranchAutomatically();
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudo cargar tu negocio.';
+        this.loading.set(false);
+        this.error.set('No se pudo cargar tu negocio.');
       },
     });
   }
@@ -101,7 +101,7 @@ export class LoginView {
 
     this.#branchService.list(tenantId, 'true').subscribe({
       next: (branches) => {
-        this.loading = false;
+        this.loading.set(false);
 
         if (branches.length === 1) {
           this.#store.setBranch(branches[0]);
@@ -110,15 +110,15 @@ export class LoginView {
         }
 
         if (branches.length === 0) {
-          this.error = 'No hay sucursales activas para tu negocio.';
+          this.error.set('No hay sucursales activas para tu negocio.');
           return;
         }
 
         void this.#router.navigate(['/branch-picker']);
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudieron cargar las sucursales.';
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar las sucursales.');
       },
     });
   }

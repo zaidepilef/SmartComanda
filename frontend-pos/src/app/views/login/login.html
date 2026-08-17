@@ -6,8 +6,8 @@
       <p>Ingresa con tu cuenta para tomar pedidos.</p>
     </div>
 
-    @if (error) {
-      <div class="error" role="alert">{{ error }}</div>
+    @if (error()) {
+      <div class="error" role="alert">{{ error() }}</div>
     }
 
     <div class="field">
@@ -40,8 +40,8 @@
       <app-turnstile (ready)="onTurnstileReady($event)" />
     </div>
 
-    <button type="submit" class="btn-primary" [disabled]="loading">
-      {{ loading ? 'Ingresando...' : 'Ingresar' }}
+    <button type="submit" class="btn-primary" [disabled]="loading()">
+      {{ loading() ? 'Ingresando...' : 'Ingresar' }}
     </button>
   </form>
 </div>

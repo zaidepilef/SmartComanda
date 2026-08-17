@@ -105,6 +105,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'orders',
+        loadComponent: () => import('./views/orders/orders.component').then((m) => m.OrdersComponent),
+        canActivate: [authGuard, roleGuard(checkoutRoles)],
+        data: {
+          title: 'Pedidos'
+        }
+      },
+      {
         path: 'tables',
         loadComponent: () => import('./views/tables/tables.component').then((m) => m.TablesComponent),
         data: {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -52,30 +52,33 @@ export class PosView implements OnInit {
   readonly branch = this.#store.branch;
   readonly cashSession = this.#store.cashSession;
 
-  dishes: Dish[] = [];
-  loading = true;
-  error = '';
+  readonly dishes = signal<Dish[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
 
-  categories: string[] = [];
-  activeCategory = '';
+  readonly categories = signal<string[]>([]);
+  readonly activeCategory = signal('');
 
-  search = '';
-  cart: CartItem[] = [];
+  readonly search = signal('');
+  readonly cart = signal<CartItem[]>([]);
 
-  itemModal: ItemModalState | null = null;
-  orderModalOpen = false;
-  paymentModalOpen = false;
+  readonly itemModal = signal<ItemModalState | null>(null);
+  readonly orderModalOpen = signal(false);
+  readonly paymentModalOpen = signal(false);
 
-readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
+  readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
 
-  clientContact = '';
-  orderType: OrderType = 'takeaway';
+  readonly clientContact = signal('');
+  readonly orderType = signal<OrderType>('takeaway');
 
-  paymentMethod: PaymentMethod | null = null;
-  cashReceived: number | null = null;
+  readonly paymentMethod = signal<PaymentMethod | null>(null);
+  readonly cashReceived = signal<number | null>(null);
 
-  submitting = false;
-  lastOrder: CreateOrderResponse | null = null;
+  readonly submitting = signal(false);
+  readonly lastOrder = signal<CreateOrderResponse | null>(null);
+
+  lastReceived: number | null = null;
+  lastChange = 0;
 
   get branchId(): string {
     return this.#store.branch()?._id ?? '';
@@ -87,25 +90,25 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   #loadDishes(): void {
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
     this.#dishService.list(this.#store.tenant()?._id, undefined, this.branchId).subscribe({
       next: (dishes) => {
-        this.dishes = dishes.filter((dish) => dish.active);
-        this.categories = Array.from(
-          new Set(this.dishes.map((dish) => dish.category || 'general'))
+        this.dishes.set(dishes.filter((dish) => dish.active));
+        this.categories.set(
+          Array.from(new Set(this.dishes().map((dish) => dish.category || 'general')))
         );
 
-        if (!this.categories.includes(this.activeCategory)) {
-          this.activeCategory = this.categories[0] ?? '';
+        if (!this.categories().includes(this.activeCategory())) {
+          this.activeCategory.set(this.categories()[0] ?? '');
         }
 
-        this.loading = false;
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudieron cargar los platos.';
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar los platos.');
       },
     });
   }
@@ -122,10 +125,10 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   visibleDishes(): Dish[] {
-    const query = this.search.trim().toLowerCase();
+    const query = this.search().trim().toLowerCase();
 
-    return this.dishes.filter((dish) => {
-      const inCategory = !this.activeCategory || dish.category === this.activeCategory;
+    return this.dishes().filter((dish) => {
+      const inCategory = !this.activeCategory() || dish.category === this.activeCategory();
       const matches = !query || dish.name.toLowerCase().includes(query);
 
       return inCategory && matches;
@@ -133,17 +136,17 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   categoryIcon(category: string): string {
-    const dish = this.dishes.find((item) => item.category === category);
+    const dish = this.dishes().find((item) => item.category === category);
 
     return dish?.icon || '🍽️';
   }
 
   selectCategory(category: string): void {
-    this.activeCategory = category;
+    this.activeCategory.set(category);
   }
 
   onSearchChange(value: string): void {
-    this.search = value;
+    this.search.set(value);
   }
 
   priceOf(dish: Dish): number {
@@ -151,70 +154,83 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   openItemModal(dish: Dish): void {
-    this.itemModal = { dish, quantity: 1, note: '' };
+    this.itemModal.set({ dish, quantity: 1, note: '' });
   }
 
   closeItemModal(): void {
-    this.itemModal = null;
+    this.itemModal.set(null);
   }
 
   addToCart(): void {
-    const modal = this.itemModal;
+    const modal = this.itemModal();
 
     if (!modal || modal.quantity <= 0) {
       return;
     }
 
-    const existing = this.cart.find((item) => item.dish._id === modal.dish._id);
+    this.cart.update((items) => {
+      const existing = items.find((item) => item.dish._id === modal.dish._id);
 
-    if (existing) {
-      existing.quantity += modal.quantity;
-      existing.note = existing.note || modal.note.trim();
-    } else {
-      this.cart.push({ dish: modal.dish, quantity: modal.quantity, note: modal.note.trim() });
-    }
+      if (existing) {
+        return items.map((item) =>
+          item === existing
+            ? {
+                ...item,
+                quantity: item.quantity + modal.quantity,
+                note: item.note || modal.note.trim(),
+              }
+            : item
+        );
+      }
 
-    this.itemModal = null;
+      return [...items, { dish: modal.dish, quantity: modal.quantity, note: modal.note.trim() }];
+    });
+
+    this.itemModal.set(null);
   }
 
   decreaseItemQuantity(): void {
-    if (this.itemModal) {
-      this.itemModal.quantity = Math.max(1, this.itemModal.quantity - 1);
-    }
+    this.itemModal.update((modal) =>
+      modal ? { ...modal, quantity: Math.max(1, modal.quantity - 1) } : modal
+    );
   }
 
   increaseItemQuantity(): void {
-    if (this.itemModal) {
-      this.itemModal.quantity += 1;
-    }
+    this.itemModal.update((modal) =>
+      modal ? { ...modal, quantity: modal.quantity + 1 } : modal
+    );
   }
 
   changeQuantity(item: CartItem, delta: number): void {
-    item.quantity += delta;
-
-    if (item.quantity <= 0) {
-      this.cart = this.cart.filter((entry) => entry !== item);
-    }
+    this.cart.update((items) =>
+      items
+        .map((entry) =>
+          entry === item ? { ...entry, quantity: entry.quantity + delta } : entry
+        )
+        .filter((entry) => entry.quantity > 0)
+    );
   }
 
   editNote(item: CartItem): void {
     const note = prompt('Observación para el plato:', item.note || '');
 
     if (note !== null) {
-      item.note = note.trim();
+      this.cart.update((items) =>
+        items.map((entry) => (entry === item ? { ...entry, note: note.trim() } : entry))
+      );
     }
   }
 
   removeItem(item: CartItem): void {
-    this.cart = this.cart.filter((entry) => entry !== item);
+    this.cart.update((items) => items.filter((entry) => entry !== item));
   }
 
   clearCart(): void {
-    this.cart = [];
+    this.cart.set([]);
   }
 
   subtotal(): number {
-    return this.cart.reduce(
+    return this.cart().reduce(
       (sum, item) => sum + this.priceOf(item.dish) * item.quantity,
       0
     );
@@ -229,28 +245,32 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   canCharge(): boolean {
-    return this.cart.length > 0 && this.cashSession() !== null && !this.submitting;
+    return this.cart().length > 0 && this.cashSession() !== null && !this.submitting();
   }
 
   openOrderModal(): void {
-    this.clientContact = '';
-    this.orderType = 'takeaway';
-    this.orderModalOpen = true;
+    this.clientContact.set('');
+    this.orderType.set('takeaway');
+    this.orderModalOpen.set(true);
   }
 
   closeOrderModal(): void {
-    this.orderModalOpen = false;
+    this.orderModalOpen.set(false);
+  }
+
+  selectOrderType(type: OrderType): void {
+    this.orderType.set(type);
   }
 
   openPaymentModal(): void {
-    this.orderModalOpen = false;
-    this.paymentMethod = null;
-    this.cashReceived = null;
-    this.paymentModalOpen = true;
+    this.orderModalOpen.set(false);
+    this.paymentMethod.set(null);
+    this.cashReceived.set(null);
+    this.paymentModalOpen.set(true);
   }
 
   closePaymentModal(): void {
-    this.paymentModalOpen = false;
+    this.paymentModalOpen.set(false);
   }
 
   branchPaymentMethods(): PaymentMethod[] {
@@ -268,44 +288,44 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   onPaymentMethodChange(method: PaymentMethod): void {
-    this.paymentMethod = method;
-    this.cashReceived = null;
+    this.paymentMethod.set(method);
+    this.cashReceived.set(null);
   }
 
   cashChange(): number {
-    const received = this.cashReceived ?? 0;
+    const received = this.cashReceived() ?? 0;
 
     return Math.max(0, received - this.total());
   }
 
   canConfirmPayment(): boolean {
-    if (!this.paymentMethod) {
+    if (!this.paymentMethod()) {
       return false;
     }
 
-    if (this.paymentMethod === 'cash') {
-      return (this.cashReceived ?? 0) >= this.total();
+    if (this.paymentMethod() === 'cash') {
+      return (this.cashReceived() ?? 0) >= this.total();
     }
 
     return true;
   }
 
   submitOrder(): void {
-    const method = this.paymentMethod;
+    const method = this.paymentMethod();
 
     if (!method || !this.canConfirmPayment()) {
       return;
     }
 
-    this.submitting = true;
+    this.submitting.set(true);
 
     this.#orderService
       .create({
         foodtruckId: this.branchId,
-        clientContact: this.clientContact.trim() || undefined,
-        orderType: this.orderType,
+        clientContact: this.clientContact().trim() || undefined,
+        orderType: this.orderType(),
         paymentMethod: method,
-        items: this.cart.map((item) => ({
+        items: this.cart().map((item) => ({
           dishId: item.dish._id,
           quantity: item.quantity,
           note: item.note || undefined,
@@ -314,10 +334,12 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
       })
       .subscribe({
         next: (response) => {
-          this.submitting = false;
-          this.paymentModalOpen = false;
-          this.lastOrder = response;
-          this.cart = [];
+          this.submitting.set(false);
+          this.paymentModalOpen.set(false);
+          this.lastOrder.set(response);
+          this.lastReceived = this.paymentMethod() === 'cash' ? (this.cashReceived() ?? 0) : null;
+          this.lastChange = this.paymentMethod() === 'cash' ? this.cashChange() : 0;
+          this.cart.set([]);
           this.#loadCashSession();
 
           if (response.warnings.length > 0) {
@@ -329,10 +351,10 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
           }
         },
         error: (err) => {
-          this.submitting = false;
+          this.submitting.set(false);
 
           if (err.status === 409) {
-            this.paymentModalOpen = false;
+            this.paymentModalOpen.set(false);
             this.#store.setCashSession(null);
             this.#toast.error('No hay una caja abierta para esta sucursal.');
             void this.#router.navigate(['/cash']);
@@ -345,7 +367,23 @@ readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
   }
 
   dismissLastOrder(): void {
-    this.lastOrder = null;
+    this.lastOrder.set(null);
+    this.lastReceived = null;
+    this.lastChange = 0;
+  }
+
+  receiptDateLabel(order: { createdAt?: string }): string {
+    return new Date(order.createdAt ?? Date.now()).toLocaleString('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  printReceipt(): void {
+    window.print();
   }
 
   goToCaja(): void {

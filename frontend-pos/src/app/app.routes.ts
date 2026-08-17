@@ -25,6 +25,11 @@ export const routes: Routes = [
     canActivate: [authGuard, contextGuard],
     loadComponent: () => import('./views/cash/cash').then((m) => m.CashView),
   },
+  {
+    path: 'kds',
+    canActivate: [authGuard, contextGuard],
+    loadComponent: () => import('./views/kds/kds').then((m) => m.KdsView),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'pos' },
   { path: '**', redirectTo: 'pos' },
 ];

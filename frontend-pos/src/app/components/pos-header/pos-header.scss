@@ -31,6 +31,16 @@ header {
   color: var(--muted);
 }
 
+.brand-tenant {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.brand-sep {
+  margin: 0 4px;
+  color: var(--muted);
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -97,4 +107,120 @@ header {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.user-wrap {
+  position: relative;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  transition: background 0.15s;
+}
+
+.user-btn:hover {
+  background: var(--panel2);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 700;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 240px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.menu-name {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.menu-email {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: var(--panel2);
+}
+
+.menu-item.danger {
+  color: #ff8a94;
+}
+
+.menu-item.danger:hover {
+  background: rgba(193, 18, 31, 0.15);
+}
+
+.menu-item .mi {
+  font-size: 15px;
 }

@@ -27,12 +27,16 @@ export interface CashSession {
   orderCount: number;
   closedAt: string | null;
   closedBy: string | null;
+  closingAmounts?: CashSessionTotals | null;
+  difference?: CashSessionTotals | null;
 }
 
 export interface OpenCashSessionPayload {
   branchId: string;
   openingAmount: number;
 }
+
+export type ClosingAmounts = Partial<Record<PaymentMethod, number>>;
 
 @Injectable({ providedIn: 'root' })
 export class CashSessionService {
@@ -48,5 +52,12 @@ export class CashSessionService {
     return this.#http.get<CashSession>(`${environment.apiUrl}/api/cash-sessions/current`, {
       params,
     });
+  }
+
+  close(id: string, payload: { closingAmounts?: ClosingAmounts }): Observable<CashSession> {
+    return this.#http.post<CashSession>(
+      `${environment.apiUrl}/api/cash-sessions/${id}/close`,
+      payload
+    );
   }
 }

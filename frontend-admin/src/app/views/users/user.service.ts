@@ -19,6 +19,7 @@ export interface User {
   name?: string;
   role?: UserRole;
   tenantId?: string;
+  branchId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -42,6 +43,7 @@ export interface UserCreatePayload {
   name?: string;
   role?: UserRole;
   tenantId?: string;
+  branchId?: string;
 }
 
 export interface UserUpdatePayload {
@@ -53,6 +55,7 @@ export interface UserUpdatePayload {
   name?: string;
   role?: UserRole;
   tenantId?: string;
+  branchId?: string;
 }
 
 @Injectable({ providedIn: 'root' })

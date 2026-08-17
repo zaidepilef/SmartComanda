@@ -4,16 +4,16 @@
     <button
       type="button"
       class="cat-btn"
-      [class.active]="activeCategory === ''"
+      [class.active]="activeCategory() === ''"
       (click)="selectCategory('')"
     >
       <span class="ci">🍽️</span> Todas
     </button>
-    @for (category of categories; track category) {
+    @for (category of categories(); track category) {
       <button
         type="button"
         class="cat-btn"
-        [class.active]="activeCategory === category"
+        [class.active]="activeCategory() === category"
         (click)="selectCategory(category)"
       >
         <span class="ci">{{ categoryIcon(category) }}</span> {{ category }}
@@ -26,18 +26,18 @@
       <input
         type="search"
         placeholder="Buscar plato..."
-        [ngModel]="search"
+        [ngModel]="search()"
         (ngModelChange)="onSearchChange($event)"
         name="posSearch"
       />
     </div>
 
-    @if (error) {
-      <div class="error-banner">{{ error }}</div>
+    @if (error()) {
+      <div class="error-banner">{{ error() }}</div>
     }
 
     <div class="grid-wrap">
-      @if (loading) {
+      @if (loading()) {
         <div class="order-empty">Cargando platos...</div>
       } @else {
         <div class="grid">
@@ -70,7 +70,7 @@
     </div>
 
     <div class="order-items">
-      @for (item of cart; track $index) {
+      @for (item of cart(); track $index) {
         <div class="oitem">
           <div class="top">
             <div class="qty-name">
@@ -104,7 +104,7 @@
       }
 
       <div class="order-btns">
-        <button type="button" class="cancel" (click)="clearCart()" [disabled]="cart.length === 0">
+        <button type="button" class="cancel" (click)="clearCart()" [disabled]="cart().length === 0">
           Limpiar
         </button>
         <button
@@ -120,8 +120,8 @@
   </aside>
 </div>
 
-<app-pos-modal [open]="itemModal !== null" [title]="itemModal ? itemModal.dish.name : ''" (closed)="closeItemModal()">
-  @if (itemModal) {
+<app-pos-modal [open]="itemModal() !== null" [title]="itemModal()?.dish?.name ?? ''" (closed)="closeItemModal()">
+  @if (itemModal(); as itemModal) {
     <div class="sec">
       <label for="itemQty">Cantidad</label>
       <div class="qty-row">
@@ -144,32 +144,32 @@
       {{ formatCLP(priceOf(itemModal.dish) * itemModal.quantity) }}
     </div>
   }
-  <button foot type="button" class="btn-primary" (click)="addToCart()" [disabled]="!itemModal || itemModal.quantity < 1">
+  <button foot type="button" class="btn-primary" (click)="addToCart()" [disabled]="!itemModal() || itemModal()!.quantity < 1">
     Agregar al pedido
   </button>
 </app-pos-modal>
 
-<app-pos-modal [open]="orderModalOpen" title="Datos del pedido" (closed)="closeOrderModal()">
-  <div class="sec">
-    <label for="orderContact">Contacto del cliente (opcional)</label>
-    <input
-      id="orderContact"
-      type="text"
-      [(ngModel)]="clientContact"
-      name="orderContact"
-      placeholder="Nombre o teléfono"
-    />
-  </div>
-  <div class="sec">
-    <label>Tipo de pedido</label>
-    <div class="opt-grid">
-      @for (type of orderTypes; track type) {
-        <button
-          type="button"
-          class="opt"
-          [class.active]="orderType === type"
-          (click)="orderType = type"
-        >
+<app-pos-modal [open]="orderModalOpen()" title="Datos del pedido" (closed)="closeOrderModal()">
+    <div class="sec">
+      <label for="orderContact">Contacto del cliente (opcional)</label>
+      <input
+        id="orderContact"
+        type="text"
+        [(ngModel)]="clientContact"
+        name="orderContact"
+        placeholder="Nombre o teléfono"
+      />
+    </div>
+    <div class="sec">
+      <label>Tipo de pedido</label>
+      <div class="opt-grid">
+        @for (type of orderTypes; track type) {
+          <button
+            type="button"
+            class="opt"
+            [class.active]="orderType() === type"
+            (click)="selectOrderType(type)"
+          >
           {{ orderTypeLabel(type) }}
         </button>
       }
@@ -180,7 +180,7 @@
   </button>
 </app-pos-modal>
 
-<app-pos-modal [open]="paymentModalOpen" title="Pago" (closed)="closePaymentModal()">
+<app-pos-modal [open]="paymentModalOpen()" title="Pago" (closed)="closePaymentModal()">
   <div class="sec">
     <label>Método de pago</label>
     <div class="opt-grid">
@@ -188,7 +188,7 @@
         <button
           type="button"
           class="opt"
-          [class.active]="paymentMethod === method"
+          [class.active]="paymentMethod() === method"
           (click)="onPaymentMethodChange(method)"
         >
           {{ paymentLabel(method) }}
@@ -197,7 +197,7 @@
     </div>
   </div>
 
-  @if (paymentMethod === 'cash') {
+  @if (paymentMethod() === 'cash') {
     <div class="sec">
       <label for="cashReceived">Monto recibido</label>
       <input
@@ -220,13 +220,13 @@
     type="button"
     class="btn-primary"
     (click)="submitOrder()"
-    [disabled]="!canConfirmPayment() || submitting"
+    [disabled]="!canConfirmPayment() || submitting()"
   >
-    {{ submitting ? 'Procesando...' : 'Confirmar pago' }} — {{ formatCLP(total()) }}
+    {{ submitting() ? 'Procesando...' : 'Confirmar pago' }} — {{ formatCLP(total()) }}
   </button>
 </app-pos-modal>
 
-@if (lastOrder; as order) {
+@if (lastOrder(); as order) {
   <div class="overlay active">
     <div class="success-modal">
       <div class="ok-icon">✔</div>
@@ -239,6 +239,46 @@
           }
         </div>
       }
+      <div class="receipt">
+        <div class="receipt-brand">
+          <strong>{{ branch()?.name ?? 'SmartComanda' }}</strong>
+          @if (branch()?.address) {
+            <div>{{ branch()?.address }}</div>
+          }
+          @if (branch()?.phone) {
+            <div>Tel: {{ branch()?.phone }}</div>
+          }
+        </div>
+        <div class="receipt-meta">
+          <div class="row"><span>N° Pedido</span><span>#{{ order.order.number }}</span></div>
+          <div class="row"><span>Fecha</span><span>{{ receiptDateLabel(order.order) }}</span></div>
+          @if (order.order.clientContact) {
+            <div class="row"><span>Cliente</span><span>{{ order.order.clientContact }}</span></div>
+          }
+          <div class="row"><span>Tipo</span><span>{{ orderTypeLabel(order.order.orderType) }}</span></div>
+        </div>
+        <div class="receipt-items">
+          @for (item of order.order.items; track $index) {
+            <div class="r-item">
+              <div class="r-item-name">{{ item.quantity }} × {{ item.name }}</div>
+              <div class="r-item-price">{{ formatCLP(item.price * item.quantity) }}</div>
+            </div>
+          }
+        </div>
+        <div class="receipt-total">
+          <span>Total</span>
+          <strong>{{ formatCLP(order.order.total) }}</strong>
+        </div>
+        <div class="receipt-pay">
+          <div class="row"><span>Método de pago</span><span>{{ paymentLabel(order.order.paymentMethod ?? 'cash') }}</span></div>
+          @if (lastReceived !== null) {
+            <div class="row"><span>Recibido</span><span>{{ formatCLP(lastReceived) }}</span></div>
+            <div class="row"><span>Vuelto</span><span>{{ formatCLP(lastChange) }}</span></div>
+          }
+        </div>
+        <div class="receipt-footer">¡Gracias por tu compra!</div>
+      </div>
+      <button type="button" class="btn-ghost" (click)="printReceipt()">🖨️ Imprimir boleta</button>
       <button type="button" class="btn-primary" (click)="dismissLastOrder()">Nuevo pedido</button>
     </div>
   </div>

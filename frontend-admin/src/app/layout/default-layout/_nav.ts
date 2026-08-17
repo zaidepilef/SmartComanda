@@ -10,6 +10,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { name: 'Dashboard', url: '/dashboard', icon: 'dashboard' },
   { name: 'Nuevo pedido', url: '/checkout', icon: 'cart', roles: ['sysadmin', 'admin', 'owner', 'cashier'] },
+  { name: 'Pedidos', url: '/orders', icon: 'clipboard', roles: ['sysadmin', 'admin', 'owner', 'cashier'] },
   { name: 'Usuarios', url: '/users', icon: 'users' },
   { name: 'Tenants', url: '/tenants', icon: 'building' },
   { name: 'Sucursales', url: '/branches', icon: 'basket', roles: ['sysadmin', 'admin', 'owner'] },

@@ -84,6 +84,68 @@
   margin-bottom: 14px;
 }
 
+.close-card {
+  margin-top: 14px;
+}
+
+.close-card h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.close-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.actions .btn-primary {
+  flex: 1;
+}
+
+.actions .btn-ghost {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 13px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  background: var(--danger);
+  color: #fff;
+  margin-top: 14px;
+  transition: filter 0.15s;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+.dif {
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.dif.pos {
+  color: #4ade80;
+}
+
+.dif.neg {
+  color: #ff8a94;
+}
+
 .sec {
   margin-bottom: 16px;
   text-align: left;

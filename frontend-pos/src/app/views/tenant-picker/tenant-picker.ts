@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { BranchFlowService } from '../../services/branch-flow.service';
@@ -19,9 +19,9 @@ export class TenantPicker {
   readonly #authService = inject(AuthService);
   readonly #router = inject(Router);
 
-  tenants: Tenant[] = [];
-  loading = true;
-  error = '';
+  readonly tenants = signal<Tenant[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
 
   constructor() {
     if (this.#authService.user()?.role !== 'sysadmin') {
@@ -31,12 +31,12 @@ export class TenantPicker {
 
     this.#tenantService.listAll().subscribe({
       next: (tenants) => {
-        this.tenants = tenants;
-        this.loading = false;
+        this.tenants.set(tenants);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
-        this.error = 'No se pudieron cargar los negocios.';
+        this.loading.set(false);
+        this.error.set('No se pudieron cargar los negocios.');
       },
     });
   }
