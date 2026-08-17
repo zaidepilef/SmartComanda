@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"tenantId":{"$numberInt":"1"},"name":{"$numberInt":"1"}},"name":"tenantId_1_name_1","unique":true}],"uuid":"e2ce5e2a7d464647908d03b70653f986","collectionName":"ingredients","type":"collection"}
