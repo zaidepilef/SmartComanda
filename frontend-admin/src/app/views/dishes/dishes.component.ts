@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../auth/auth.service';
 import { Tenant, TenantService } from '../../services/tenants.service';
-import { Dish, DishService, RecipeLine } from '../../services/dishes.service';
+import { Branch, BranchService } from '../../services/branches.service';
+import { BranchPrice, Dish, DishService, RecipeLine } from '../../services/dishes.service';
 import { Ingredient, IngredientService } from '../../services/ingredients.service';
 
 interface RecipeFormLine {
@@ -11,10 +12,12 @@ interface RecipeFormLine {
   quantity: number;
 }
 
-interface DishForm {  tenantId: string;
+interface DishForm {
+  tenantId: string;
   name: string;
   salePrice: number;
   recipe: RecipeFormLine[];
+  branchPrices: BranchPrice[];
 }
 
 const EMPTY_FORM: DishForm = {
@@ -22,6 +25,7 @@ const EMPTY_FORM: DishForm = {
   name: '',
   salePrice: 0,
   recipe: [],
+  branchPrices: [],
 };
 
 @Component({
@@ -33,12 +37,15 @@ export class DishesComponent implements OnInit {
   readonly #dishService = inject(DishService);
   readonly #ingredientService = inject(IngredientService);
   readonly #tenantService = inject(TenantService);
+  readonly #branchService = inject(BranchService);
   readonly #authService = inject(AuthService);
 
   readonly tenants = signal<Tenant[]>([]);
   readonly ingredients = signal<Ingredient[]>([]);
+  readonly branches = signal<Branch[]>([]);
   readonly dishes = signal<Dish[]>([]);
   readonly selectedTenantId = signal<string>('');
+  readonly selectedBranchId = signal<string>('');
   readonly search = signal('');
   readonly loading = signal(false);
   readonly error = signal('');
@@ -53,11 +60,19 @@ export class DishesComponent implements OnInit {
   ngOnInit(): void {
     this.#loadTenants();
     this.#loadIngredients();
+    this.#loadBranches();
     this.#loadDishes();
   }
 
   onTenantChange(tenantId: string): void {
     this.selectedTenantId.set(tenantId);
+    this.selectedBranchId.set('');
+    this.#loadBranches();
+    this.#loadDishes();
+  }
+
+  onBranchChange(branchId: string): void {
+    this.selectedBranchId.set(branchId);
     this.#loadDishes();
   }
 
@@ -74,8 +89,16 @@ export class DishesComponent implements OnInit {
   }
 
   #loadIngredients(): void {
-    this.#ingredientService.list().subscribe({
+    const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
+    this.#ingredientService.list(tenantId).subscribe({
       next: (ingredients) => this.ingredients.set(ingredients),
+    });
+  }
+
+  #loadBranches(): void {
+    const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
+    this.#branchService.list(tenantId, undefined, 'true').subscribe({
+      next: (branches) => this.branches.set(branches),
     });
   }
 
@@ -85,8 +108,9 @@ export class DishesComponent implements OnInit {
 
     const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
     const q = this.search() || undefined;
+    const branchId = this.selectedBranchId() || undefined;
 
-    this.#dishService.list(tenantId, q).subscribe({
+    this.#dishService.list(tenantId, q, branchId).subscribe({
       next: (dishes) => {
         this.dishes.set(dishes);
         this.loading.set(false);
@@ -110,11 +134,51 @@ export class DishesComponent implements OnInit {
     return this.ingredients().find((i) => i._id === ingredientId)?.unit ?? '';
   }
 
+  branchPriceOf(target: { branchPrices?: BranchPrice[] }, branchId: string): number | null {
+    return (
+      target.branchPrices?.find((entry) => entry.branchId === branchId)?.price ?? null
+    );
+  }
+
+  setBranchPrice(
+    target: { branchPrices?: BranchPrice[] },
+    branchId: string,
+    value: string
+  ): void {
+    const price = Number(value);
+
+    if (!target.branchPrices) {
+      target.branchPrices = [];
+    }
+
+    const index = target.branchPrices.findIndex((entry) => entry.branchId === branchId);
+
+    if (!Number.isFinite(price) || price <= 0) {
+      if (index >= 0) {
+        target.branchPrices.splice(index, 1);
+      }
+      return;
+    }
+
+    if (index >= 0) {
+      target.branchPrices[index].price = price;
+    } else {
+      target.branchPrices.push({ branchId, price });
+    }
+  }
+
+  formatCost(value: number | undefined): string {
+    if (value === undefined || value === null) {
+      return '—';
+    }
+    return `$${value.toLocaleString('es-CL')}`;
+  }
+
   marginPercent(dish: Dish): number {
-    if (dish.salePrice <= 0) {
+    if (dish.salePrice <= 0 || dish.cost === undefined || dish.cost === null) {
       return 0;
     }
-    return Math.round(((dish.salePrice - dish.computedCost) / dish.salePrice) * 100);
+    return Math.round(((dish.salePrice - dish.cost) / dish.salePrice) * 100);
   }
 
   addRecipeLine(target: { recipe: Array<{ ingredientId: string; quantity: number }> }): void {
@@ -122,14 +186,19 @@ export class DishesComponent implements OnInit {
     target.recipe.push({ ingredientId: first, quantity: 1 });
   }
 
-  removeRecipeLine(target: { recipe: Array<{ ingredientId: string; quantity: number }> }, index: number): void {
+  removeRecipeLine(
+    target: { recipe: Array<{ ingredientId: string; quantity: number }> },
+    index: number
+  ): void {
     target.recipe.splice(index, 1);
   }
 
   startCreate(): void {
     this.newDish = {
       ...EMPTY_FORM,
-      tenantId: this.isSysadmin ? this.selectedTenantId() : this.#authService.user()?.tenantId ?? '',
+      tenantId: this.isSysadmin
+        ? this.selectedTenantId()
+        : this.#authService.user()?.tenantId ?? '',
     };
     this.addRecipeLine(this.newDish);
     this.creating.set(true);
@@ -147,7 +216,9 @@ export class DishesComponent implements OnInit {
     }
 
     if (this.newDish.recipe.some((line) => !line.ingredientId || line.quantity <= 0)) {
-      this.error.set('Completa cada línea de la receta con un ingrediente y una cantidad mayor a cero.');
+      this.error.set(
+        'Completa cada línea de la receta con un ingrediente y una cantidad mayor a cero.'
+      );
       return;
     }
 
@@ -160,9 +231,10 @@ export class DishesComponent implements OnInit {
       quantity: line.quantity,
       unit: this.ingredientUnit(line.ingredientId),
     }));
+    const branchPrices = this.newDish.branchPrices?.length ? this.newDish.branchPrices : undefined;
 
     this.#dishService
-      .create({ tenantId, name, salePrice, recipe, active: true })
+      .create({ tenantId, name, salePrice, recipe, branchPrices, active: true })
       .subscribe({
         next: () => {
           this.saving.set(false);
@@ -180,6 +252,7 @@ export class DishesComponent implements OnInit {
     this.editing = {
       ...dish,
       recipe: dish.recipe.map((line) => ({ ...line })),
+      branchPrices: (dish.branchPrices ?? []).map((entry) => ({ ...entry })),
     };
   }
 
@@ -193,7 +266,9 @@ export class DishesComponent implements OnInit {
     }
 
     if (this.editing.recipe.some((line) => !line.ingredientId || line.quantity <= 0)) {
-      this.error.set('Completa cada línea de la receta con un ingrediente y una cantidad mayor a cero.');
+      this.error.set(
+        'Completa cada línea de la receta con un ingrediente y una cantidad mayor a cero.'
+      );
       return;
     }
 
@@ -206,9 +281,12 @@ export class DishesComponent implements OnInit {
       quantity: line.quantity,
       unit: this.ingredientUnit(line.ingredientId),
     }));
+    const branchPrices = this.editing.branchPrices?.length
+      ? this.editing.branchPrices
+      : undefined;
 
     this.#dishService
-      .update(_id, { name, salePrice, recipe })
+      .update(_id, { name, salePrice, recipe, branchPrices })
       .subscribe({
         next: () => {
           this.saving.set(false);

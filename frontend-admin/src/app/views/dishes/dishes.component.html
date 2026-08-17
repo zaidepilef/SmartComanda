@@ -34,6 +34,21 @@
               </select>
             </div>
           }
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="dishBranchFilter">Sucursal</label>
+            <select
+              id="dishBranchFilter"
+              class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              [ngModel]="selectedBranchId()"
+              (ngModelChange)="onBranchChange($event)"
+              name="dishBranchFilter"
+            >
+              <option value="">Todas (precio default)</option>
+              @for (branch of branches(); track branch._id) {
+                <option [value]="branch._id">{{ branch.name }}</option>
+              }
+            </select>
+          </div>
           <span class="pb-2 text-sm text-gray-500 dark:text-slate-400">{{ dishes().length }} plato(s)</span>
         </div>
         <button
@@ -77,6 +92,31 @@
                 name="editDishPrice"
                 required
               />
+            </div>
+          </div>
+          <div class="mt-3">
+            <h6 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Precios por sucursal</h6>
+            <p class="mb-2 text-xs text-gray-500 dark:text-slate-400">
+              Deja vacío para usar el precio default en esa sucursal.
+            </p>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              @for (branch of branches(); track branch._id) {
+                <div>
+                  <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-slate-300" [for]="'editBranchPrice' + branch._id">{{ branch.name }}</label>
+                  <input
+                    [id]="'editBranchPrice' + branch._id"
+                    type="number"
+                    min="0"
+                    step="10"
+                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    [ngModel]="branchPriceOf(editing, branch._id) ?? ''"
+                    (ngModelChange)="setBranchPrice(editing, branch._id, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                    [name]="'editBranchPrice' + branch._id"
+                    placeholder="Precio default"
+                  />
+                </div>
+              }
             </div>
           </div>
           <div class="mt-3">
@@ -189,6 +229,31 @@
             </div>
           </div>
           <div class="mt-3">
+            <h6 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Precios por sucursal</h6>
+            <p class="mb-2 text-xs text-gray-500 dark:text-slate-400">
+              Deja vacío para usar el precio default en esa sucursal.
+            </p>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              @for (branch of branches(); track branch._id) {
+                <div>
+                  <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-slate-300" [for]="'newBranchPrice' + branch._id">{{ branch.name }}</label>
+                  <input
+                    [id]="'newBranchPrice' + branch._id"
+                    type="number"
+                    min="0"
+                    step="10"
+                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    [ngModel]="branchPriceOf(newDish, branch._id) ?? ''"
+                    (ngModelChange)="setBranchPrice(newDish, branch._id, $event)"
+                    [ngModelOptions]="{ standalone: true }"
+                    [name]="'newBranchPrice' + branch._id"
+                    placeholder="Precio default"
+                  />
+                </div>
+              }
+            </div>
+          </div>
+          <div class="mt-3">
             <h6 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Receta</h6>
             @for (line of newDish.recipe; track $index) {
               <div class="mb-2 flex flex-wrap items-center gap-2">
@@ -267,14 +332,22 @@
                 <span class="text-gray-500 dark:text-slate-400">Precio</span>
                 <span class="font-medium text-gray-900 dark:text-white">$ {{ dish.salePrice.toLocaleString('es-CL') }}</span>
               </div>
+              @if (selectedBranchId() && branchPriceOf(dish, selectedBranchId()) !== null) {
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-slate-400">Precio en esta sucursal</span>
+                  <span class="font-medium text-blue-600 dark:text-blue-400">$ {{ branchPriceOf(dish, selectedBranchId())!.toLocaleString('es-CL') }}</span>
+                </div>
+              }
               <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Costo receta</span>
-                <span class="font-medium text-gray-900 dark:text-white">$ {{ dish.computedCost.toLocaleString('es-CL') }}</span>
+                <span class="text-gray-500 dark:text-slate-400">Costo receta (FIFO)</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ formatCost(dish.cost) }}</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-slate-400">Margen</span>
-                <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ marginPercent(dish) }}%</span>
-              </div>
+              @if (dish.cost !== undefined && dish.cost !== null) {
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-slate-400">Margen</span>
+                  <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ marginPercent(dish) }}%</span>
+                </div>
+              }
               <ul class="mt-2 space-y-0.5 border-t border-gray-100 pt-2 text-xs text-gray-600 dark:border-slate-800 dark:text-slate-400">
                 @for (line of dish.recipe; track $index) {
                   <li>{{ ingredientName(line.ingredientId) }}: {{ line.quantity }} {{ line.unit }}</li>

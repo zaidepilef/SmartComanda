@@ -5,24 +5,32 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Ingredient } from './ingredients.service';
 
-export type WarehouseMode = 'shared' | 'per_branch';
-
 export interface StockItem {
   _id: string;
   tenantId: string;
   ingredientId: string;
-  branchId: string | null;
+  branchId: string;
   quantity: number;
+  unitCost: number;
+  totalValue: number;
+  batchCount: number;
   ingredient: Ingredient | null;
 }
 
 export interface StockAdjustmentPayload {
   tenantId: string;
   ingredientId: string;
-  branchId?: string | null;
+  branchId: string;
   type: 'entry' | 'exit';
   quantity: number;
   reason: string;
+  unitCost?: number;
+}
+
+export interface MovementBatchEntry {
+  batchId: string;
+  quantity: number;
+  unitCost: number;
 }
 
 export interface Movement {
@@ -32,37 +40,17 @@ export interface Movement {
   branchId?: string;
   quantity: number;
   type: 'entry' | 'exit' | 'sale';
-  reason: string;
+  unitCost?: number;
+  batchId?: string;
+  batches?: MovementBatchEntry[];
   orderId?: string;
+  reason: string;
   createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
   readonly #http = inject(HttpClient);
-
-  getWarehouseMode(tenantId?: string): Observable<{ warehouseMode: WarehouseMode }> {
-    let params = new HttpParams();
-
-    if (tenantId) {
-      params = params.set('tenantId', tenantId);
-    }
-
-    return this.#http.get<{ warehouseMode: WarehouseMode }>(
-      `${environment.apiUrl}/api/inventory/mode`,
-      { params }
-    );
-  }
-
-  setWarehouseMode(
-    warehouseMode: WarehouseMode,
-    tenantId?: string
-  ): Observable<{ warehouseMode: WarehouseMode }> {
-    return this.#http.put<{ warehouseMode: WarehouseMode }>(
-      `${environment.apiUrl}/api/inventory/mode`,
-      { tenantId, warehouseMode }
-    );
-  }
 
   listStock(tenantId?: string, branchId?: string): Observable<StockItem[]> {
     let params = new HttpParams();
@@ -78,8 +66,8 @@ export class InventoryService {
     return this.#http.get<StockItem[]>(`${environment.apiUrl}/api/inventory/stock`, { params });
   }
 
-  adjustStock(payload: StockAdjustmentPayload): Observable<StockItem> {
-    return this.#http.post<StockItem>(
+  adjustStock(payload: StockAdjustmentPayload): Observable<unknown> {
+    return this.#http.post<unknown>(
       `${environment.apiUrl}/api/inventory/stock/adjustments`,
       payload
     );

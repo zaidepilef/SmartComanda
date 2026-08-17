@@ -4,12 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
 import { Tenant, TenantService } from '../../services/tenants.service';
 import { Branch, BranchService } from '../../services/branches.service';
-import {
-  InventoryService,
-  Movement,
-  StockItem,
-  WarehouseMode,
-} from '../../services/inventory.service';
+import { InventoryService, Movement, StockItem } from '../../services/inventory.service';
 import { Ingredient, IngredientService } from '../../services/ingredients.service';
 
 interface AdjustmentForm {
@@ -19,6 +14,7 @@ interface AdjustmentForm {
   type: 'entry' | 'exit';
   quantity: number;
   reason: string;
+  unitCost: number | null;
 }
 
 const EMPTY_FORM: AdjustmentForm = {
@@ -28,6 +24,7 @@ const EMPTY_FORM: AdjustmentForm = {
   type: 'entry',
   quantity: 1,
   reason: '',
+  unitCost: null,
 };
 
 @Component({
@@ -49,7 +46,6 @@ export class InventoryComponent implements OnInit {
   readonly movements = signal<Movement[]>([]);
   readonly selectedTenantId = signal<string>('');
   readonly selectedBranchId = signal<string>('');
-  readonly warehouseMode = signal<WarehouseMode>('shared');
   readonly loading = signal(false);
   readonly error = signal('');
   readonly success = signal('');
@@ -57,7 +53,6 @@ export class InventoryComponent implements OnInit {
   readonly showAdjustment = signal(false);
 
   readonly isSysadmin = this.#authService.user()?.role === 'sysadmin';
-  readonly isOwner = ['sysadmin', 'owner'].includes(this.#authService.user()?.role ?? '');
 
   adjustment: AdjustmentForm = { ...EMPTY_FORM };
 
@@ -65,7 +60,6 @@ export class InventoryComponent implements OnInit {
     this.#loadTenants();
     this.#loadIngredients();
     this.#loadBranches();
-    this.#loadMode();
     this.#loadStock();
     this.#loadMovements();
   }
@@ -74,7 +68,7 @@ export class InventoryComponent implements OnInit {
     this.selectedTenantId.set(tenantId);
     this.selectedBranchId.set('');
     this.#loadBranches();
-    this.#loadMode();
+    this.#loadIngredients();
     this.#loadStock();
     this.#loadMovements();
   }
@@ -105,21 +99,12 @@ export class InventoryComponent implements OnInit {
     });
   }
 
-  #loadMode(): void {
-    const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
-    this.#inventoryService.getWarehouseMode(tenantId).subscribe({
-      next: ({ warehouseMode }) => this.warehouseMode.set(warehouseMode),
-      error: (err) => this.error.set(err.error?.error ?? 'No se pudo cargar el modo de bodega.'),
-    });
-  }
-
   #loadStock(): void {
     this.loading.set(true);
     this.error.set('');
 
     const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
-    const branchId =
-      this.warehouseMode() === 'per_branch' ? this.selectedBranchId() || undefined : undefined;
+    const branchId = this.selectedBranchId() || undefined;
 
     this.#inventoryService.listStock(tenantId, branchId).subscribe({
       next: (stock) => {
@@ -150,7 +135,7 @@ export class InventoryComponent implements OnInit {
 
   branchName(branchId: string | null | undefined): string {
     if (!branchId) {
-      return 'Bodega central';
+      return '—';
     }
     return this.branches().find((b) => b._id === branchId)?.name ?? '—';
   }
@@ -159,44 +144,15 @@ export class InventoryComponent implements OnInit {
     return value.toLocaleString('es-CL');
   }
 
+  formatCost(value: number | undefined): string {
+    if (value === undefined || value === null) {
+      return '—';
+    }
+    return `$${value.toLocaleString('es-CL', { maximumFractionDigits: 2 })}`;
+  }
+
   movementDate(date: string): string {
     return new Date(date).toLocaleString('es-CL');
-  }
-
-  modeLabel(mode: WarehouseMode): string {
-    return mode === 'shared' ? 'Bodega compartida' : 'Bodega por sucursal';
-  }
-
-  setMode(mode: WarehouseMode): void {
-    if (mode === this.warehouseMode()) {
-      return;
-    }
-
-    const tenantId = this.isSysadmin ? this.selectedTenantId() || undefined : undefined;
-
-    if (!tenantId && !this.isSysadmin) {
-      this.error.set('No se pudo identificar el tenant.');
-      return;
-    }
-
-    this.saving.set(true);
-    this.error.set('');
-    this.success.set('');
-
-    this.#inventoryService.setWarehouseMode(mode, tenantId).subscribe({
-      next: ({ warehouseMode }) => {
-        this.warehouseMode.set(warehouseMode);
-        this.saving.set(false);
-        this.success.set('Modo de bodega actualizado.');
-        this.#loadStock();
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.error.set(
-          err.error?.error ?? 'No se pudo cambiar el modo de bodega.'
-        );
-      },
-    });
   }
 
   startAdjustment(): void {
@@ -226,8 +182,13 @@ export class InventoryComponent implements OnInit {
       return;
     }
 
-    if (this.warehouseMode() === 'per_branch' && !this.adjustment.branchId) {
-      this.error.set('En modo por sucursal debes elegir la sucursal.');
+    if (!this.adjustment.branchId) {
+      this.error.set('Selecciona la sucursal (bodega).');
+      return;
+    }
+
+    if (this.adjustment.type === 'entry' && (this.adjustment.unitCost ?? 0) <= 0) {
+      this.error.set('Ingresa el costo unitario de la compra (puesto en bodega).');
       return;
     }
 
@@ -235,11 +196,19 @@ export class InventoryComponent implements OnInit {
     this.error.set('');
     this.success.set('');
 
-    const { tenantId, ingredientId, type, quantity, reason } = this.adjustment;
-    const branchId = this.warehouseMode() === 'per_branch' ? this.adjustment.branchId : null;
+    const { tenantId, ingredientId, branchId, type, quantity, reason, unitCost } =
+      this.adjustment;
 
     this.#inventoryService
-      .adjustStock({ tenantId, ingredientId, branchId, type, quantity, reason })
+      .adjustStock({
+        tenantId,
+        ingredientId,
+        branchId,
+        type,
+        quantity,
+        reason,
+        ...(type === 'entry' ? { unitCost: unitCost ?? 0 } : {}),
+      })
       .subscribe({
         next: () => {
           this.saving.set(false);

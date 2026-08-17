@@ -67,6 +67,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       MONGODB_URI: mongodb://mongodb:27017/smartcomanda
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      ENABLE_API_DOCS: ${ENABLE_API_DOCS:-true}
 
     ports:
       - "3000:3000"

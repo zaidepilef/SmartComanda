@@ -10,13 +10,19 @@ export interface RecipeLine {
   unit: string;
 }
 
+export interface BranchPrice {
+  branchId: string;
+  price: number;
+}
+
 export interface Dish {
   _id: string;
   tenantId: string;
   name: string;
   salePrice: number;
-  computedCost: number;
   recipe: RecipeLine[];
+  branchPrices?: BranchPrice[];
+  cost?: number;
   active: boolean;
   description?: string;
 }
@@ -26,6 +32,7 @@ export interface DishPayload {
   name: string;
   salePrice: number;
   recipe: RecipeLine[];
+  branchPrices?: BranchPrice[];
   active: boolean;
   description?: string;
 }
@@ -34,6 +41,7 @@ export interface DishUpdatePayload {
   name?: string;
   salePrice?: number;
   recipe?: RecipeLine[];
+  branchPrices?: BranchPrice[];
   active?: boolean;
   description?: string;
 }
@@ -42,7 +50,7 @@ export interface DishUpdatePayload {
 export class DishService {
   readonly #http = inject(HttpClient);
 
-  list(tenantId?: string, q?: string): Observable<Dish[]> {
+  list(tenantId?: string, q?: string, branchId?: string): Observable<Dish[]> {
     let params = new HttpParams();
 
     if (tenantId) {
@@ -51,6 +59,10 @@ export class DishService {
 
     if (q && q.trim() !== '') {
       params = params.set('q', q.trim());
+    }
+
+    if (branchId) {
+      params = params.set('branchId', branchId);
     }
 
     return this.#http.get<Dish[]>(`${environment.apiUrl}/api/dishes`, { params });

@@ -41,9 +41,8 @@
             [ngModel]="selectedBranchId()"
             (ngModelChange)="onBranchChange($event)"
             name="invBranchFilter"
-            [disabled]="warehouseMode() !== 'per_branch'"
           >
-            <option value="">Bodega central</option>
+            <option value="">Todas las sucursales</option>
             @for (branch of branches(); track branch._id) {
               <option [value]="branch._id">{{ branch.name }}</option>
             }
@@ -56,53 +55,6 @@
           Ajustar stock
         </button>
       </div>
-
-      @if (isOwner) {
-        <div class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
-          <h6 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Modo de bodega</h6>
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-blue-600]="warehouseMode() === 'shared'"
-              [class.text-white]="warehouseMode() === 'shared'"
-              [class.hover:bg-blue-700]="warehouseMode() === 'shared'"
-              [class.border]="warehouseMode() !== 'shared'"
-              [class.border-gray-300]="warehouseMode() !== 'shared'"
-              [class.text-gray-700]="warehouseMode() !== 'shared'"
-              [class.dark:border-slate-700]="warehouseMode() !== 'shared'"
-              [class.dark:text-slate-300]="warehouseMode() !== 'shared'"
-              [class.hover:bg-gray-50]="warehouseMode() !== 'shared'"
-              [class.dark:hover:bg-slate-700]="warehouseMode() !== 'shared'"
-              [disabled]="saving()"
-              (click)="setMode('shared')"
-            >
-              Bodega compartida
-            </button>
-            <button
-              type="button"
-              class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-blue-600]="warehouseMode() === 'per_branch'"
-              [class.text-white]="warehouseMode() === 'per_branch'"
-              [class.hover:bg-blue-700]="warehouseMode() === 'per_branch'"
-              [class.border]="warehouseMode() !== 'per_branch'"
-              [class.border-gray-300]="warehouseMode() !== 'per_branch'"
-              [class.text-gray-700]="warehouseMode() !== 'per_branch'"
-              [class.dark:border-slate-700]="warehouseMode() !== 'per_branch'"
-              [class.dark:text-slate-300]="warehouseMode() !== 'per_branch'"
-              [class.hover:bg-gray-50]="warehouseMode() !== 'per_branch'"
-              [class.dark:hover:bg-slate-700]="warehouseMode() !== 'per_branch'"
-              [disabled]="saving()"
-              (click)="setMode('per_branch')"
-            >
-              Bodega por sucursal
-            </button>
-          </div>
-          <p class="mt-2 text-xs text-gray-500 dark:text-slate-400">
-            Modo actual: <strong>{{ modeLabel(warehouseMode()) }}</strong>. El cambio se bloquea si ya existen registros de stock.
-          </p>
-        </div>
-      }
 
       @if (showAdjustment()) {
         <form class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50" (ngSubmit)="saveAdjustment()">
@@ -140,23 +92,21 @@
                 }
               </select>
             </div>
-            @if (warehouseMode() === 'per_branch') {
-              <div>
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="adjBranch">Sucursal</label>
-                <select
-                  id="adjBranch"
-                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  [(ngModel)]="adjustment.branchId"
-                  name="adjBranch"
-                  required
-                >
-                  <option value="" disabled>Selecciona una sucursal</option>
-                  @for (branch of branches(); track branch._id) {
-                    <option [value]="branch._id">{{ branch.name }}</option>
-                  }
-                </select>
-              </div>
-            }
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="adjBranch">Sucursal (bodega)</label>
+              <select
+                id="adjBranch"
+                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                [(ngModel)]="adjustment.branchId"
+                name="adjBranch"
+                required
+              >
+                <option value="" disabled>Selecciona una sucursal</option>
+                @for (branch of branches(); track branch._id) {
+                  <option [value]="branch._id">{{ branch.name }}</option>
+                }
+              </select>
+            </div>
             <div>
               <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="adjType">Tipo</label>
               <select
@@ -182,6 +132,22 @@
                 required
               />
             </div>
+            @if (adjustment.type === 'entry') {
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="adjUnitCost">Costo unitario (puesto en bodega)</label>
+                <input
+                  id="adjUnitCost"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  [(ngModel)]="adjustment.unitCost"
+                  name="adjUnitCost"
+                  placeholder="Ej: 303 (incluye flete)"
+                  required
+                />
+              </div>
+            }
             <div class="sm:col-span-2 md:col-span-5">
               <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="adjReason">Motivo</label>
               <input
@@ -222,19 +188,23 @@
               <th class="px-3 py-2">Unidad</th>
               <th class="px-3 py-2">Bodega</th>
               <th class="px-3 py-2 text-right">Cantidad</th>
+              <th class="px-3 py-2 text-right">Costo unit. promedio</th>
+              <th class="px-3 py-2 text-right">Valorización</th>
             </tr>
           </thead>
           <tbody>
-            @for (item of stock(); track item._id) {
+            @for (item of stock(); track item.branchId + ':' + item.ingredientId) {
               <tr class="border-b border-gray-100 dark:border-slate-800">
                 <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">{{ item.ingredient?.name ?? '—' }}</td>
                 <td class="px-3 py-2 text-gray-600 dark:text-slate-400">{{ item.ingredient?.unit ?? '—' }}</td>
                 <td class="px-3 py-2 text-gray-600 dark:text-slate-400">{{ branchName(item.branchId) }}</td>
                 <td class="px-3 py-2 text-right font-medium text-gray-900 dark:text-white">{{ formatQuantity(item.quantity) }}</td>
+                <td class="px-3 py-2 text-right text-gray-600 dark:text-slate-400">{{ formatCost(item.unitCost) }}</td>
+                <td class="px-3 py-2 text-right text-gray-600 dark:text-slate-400">{{ formatCost(item.totalValue) }}</td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-slate-400">
+                <td colspan="6" class="px-3 py-4 text-center text-gray-500 dark:text-slate-400">
                   {{ loading() ? 'Cargando...' : 'No hay stock registrado.' }}
                 </td>
               </tr>
@@ -257,6 +227,7 @@
               <th class="px-3 py-2">Bodega</th>
               <th class="px-3 py-2">Tipo</th>
               <th class="px-3 py-2 text-right">Cantidad</th>
+              <th class="px-3 py-2 text-right">Costo unit.</th>
               <th class="px-3 py-2">Motivo</th>
             </tr>
           </thead>
@@ -270,11 +241,12 @@
                   <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium {{ movementBadge(movement.type) }}">{{ movementLabel(movement.type) }}</span>
                 </td>
                 <td class="px-3 py-2 text-right font-medium text-gray-900 dark:text-white">{{ formatQuantity(movement.quantity) }}</td>
+                <td class="px-3 py-2 text-right text-gray-600 dark:text-slate-400">{{ formatCost(movement.unitCost) }}</td>
                 <td class="px-3 py-2 text-gray-600 dark:text-slate-400">{{ movement.reason }}</td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="px-3 py-4 text-center text-gray-500 dark:text-slate-400">
+                <td colspan="7" class="px-3 py-4 text-center text-gray-500 dark:text-slate-400">
                   No hay movimientos registrados.
                 </td>
               </tr>
