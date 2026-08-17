@@ -9,6 +9,10 @@ export interface Tenant {
   name: string;
   slug: string;
   active: boolean;
+  loyalty?: {
+    pointsPerAmount: number;
+    currency?: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -17,5 +21,9 @@ export class TenantService {
 
   listAll(): Observable<Tenant[]> {
     return this.#http.get<Tenant[]>(`${environment.apiUrl}/api/tenants`);
+  }
+
+  get(id: string): Observable<Tenant> {
+    return this.#http.get<Tenant>(`${environment.apiUrl}/api/tenants/${id}`);
   }
 }

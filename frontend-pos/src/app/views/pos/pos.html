@@ -175,6 +175,19 @@
       }
     </div>
   </div>
+
+  @if (orderType() === 'qr') {
+    <div class="sec">
+      <label for="orderPhone">WhatsApp del cliente (obligatorio para puntos)</label>
+      <input
+        id="orderPhone"
+        type="tel"
+        [(ngModel)]="clientPhone"
+        name="orderPhone"
+        placeholder="+56912345678"
+      />
+    </div>
+  }
   <button foot type="button" class="btn-primary" (click)="openPaymentModal()">
     Continuar al pago — {{ formatCLP(total()) }}
   </button>
@@ -213,6 +226,10 @@
         <span class="change">{{ formatCLP(cashChange()) }}</span>
       </div>
     </div>
+  }
+
+  @if (pointsPreview() > 0) {
+    <div class="sec points-badge">⭐ El cliente ganará +{{ pointsPreview() }} puntos</div>
   }
 
   <button
@@ -254,6 +271,12 @@
           <div class="row"><span>Fecha</span><span>{{ receiptDateLabel(order.order) }}</span></div>
           @if (order.order.clientContact) {
             <div class="row"><span>Cliente</span><span>{{ order.order.clientContact }}</span></div>
+          }
+          @if (order.order.clientPhone) {
+            <div class="row"><span>WhatsApp</span><span>{{ order.order.clientPhone }}</span></div>
+          }
+          @if (order.pointsEarned) {
+            <div class="row"><span>Puntos</span><span>+{{ order.pointsEarned }} ⭐</span></div>
           }
           <div class="row"><span>Tipo</span><span>{{ orderTypeLabel(order.order.orderType) }}</span></div>
         </div>

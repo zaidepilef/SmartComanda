@@ -18,6 +18,7 @@ import {
   ORDER_TYPE_LABELS,
 } from '../../services/orders.service';
 import { PAYMENT_METHOD_LABELS } from '../../services/branches.service';
+import { TenantService } from '../../services/tenants.service';
 import { PosStore } from '../../store/pos-store.service';
 
 interface CartItem {
@@ -45,6 +46,7 @@ export class PosView implements OnInit {
   readonly #dishService = inject(DishService);
   readonly #orderService = inject(OrderService);
   readonly #cashSessionService = inject(CashSessionService);
+  readonly #tenantService = inject(TenantService);
   readonly #store = inject(PosStore);
   readonly #toast = inject(ToastService);
   readonly #router = inject(Router);
@@ -69,8 +71,10 @@ export class PosView implements OnInit {
   readonly orderTypes: OrderType[] = ['takeaway', 'dinein', 'delivery', 'qr'];
 
   readonly clientContact = signal('');
+  readonly clientPhone = signal('');
   readonly orderType = signal<OrderType>('takeaway');
 
+  readonly pointsRate = signal<number | null>(null);
   readonly paymentMethod = signal<PaymentMethod | null>(null);
   readonly cashReceived = signal<number | null>(null);
 
@@ -250,6 +254,7 @@ export class PosView implements OnInit {
 
   openOrderModal(): void {
     this.clientContact.set('');
+    this.clientPhone.set('');
     this.orderType.set('takeaway');
     this.orderModalOpen.set(true);
   }
@@ -267,6 +272,31 @@ export class PosView implements OnInit {
     this.paymentMethod.set(null);
     this.cashReceived.set(null);
     this.paymentModalOpen.set(true);
+    this.#loadPointsRate();
+  }
+
+  #loadPointsRate(): void {
+    const tenantId = this.#store.tenant()?._id;
+
+    if (!tenantId) {
+      this.pointsRate.set(null);
+      return;
+    }
+
+    this.#tenantService.get(tenantId).subscribe({
+      next: (tenant) => this.pointsRate.set(tenant.loyalty?.pointsPerAmount ?? null),
+      error: () => this.pointsRate.set(null),
+    });
+  }
+
+  pointsPreview(): number {
+    const rate = this.pointsRate();
+
+    if (this.orderType() !== 'qr' || !this.clientPhone().trim() || !rate || rate <= 0) {
+      return 0;
+    }
+
+    return Math.floor(this.total() / rate);
   }
 
   closePaymentModal(): void {
@@ -323,6 +353,7 @@ export class PosView implements OnInit {
       .create({
         foodtruckId: this.branchId,
         clientContact: this.clientContact().trim() || undefined,
+        clientPhone: this.clientPhone().trim() || undefined,
         orderType: this.orderType(),
         paymentMethod: method,
         items: this.cart().map((item) => ({

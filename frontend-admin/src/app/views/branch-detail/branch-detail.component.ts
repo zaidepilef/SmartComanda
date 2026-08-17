@@ -2,10 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
+import QRCode from 'qrcode';
 
+import { environment } from '../../../environments/environment';
 import { Branch, BranchService, PaymentMethod } from '../../services/branches.service';
 
-type DetailTab = 'config' | 'menu' | 'tables' | 'schedules' | 'settings';
+type DetailTab = 'config' | 'menu' | 'tables' | 'schedules' | 'settings' | 'qr';
 
 const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
   { value: 'cash', label: 'Efectivo' },
@@ -20,11 +22,12 @@ const TAB_LABELS: Record<DetailTab, string> = {
   tables: 'Mesas',
   schedules: 'Horarios',
   settings: 'Ajustes',
+  qr: 'QR de pedidos',
 };
 
 const PLACEHOLDER_TABS: DetailTab[] = ['menu', 'tables', 'schedules', 'settings'];
 
-const ALL_TABS: DetailTab[] = ['config', 'menu', 'tables', 'schedules', 'settings'];
+const ALL_TABS: DetailTab[] = ['config', 'qr', 'menu', 'tables', 'schedules', 'settings'];
 
 @Component({
   selector: 'app-branch-detail',
@@ -46,6 +49,10 @@ export class BranchDetailComponent implements OnInit {
   readonly tabs: DetailTab[] = ALL_TABS;
 
   readonly paymentMethodOptions = PAYMENT_METHOD_OPTIONS;
+
+  readonly qrUrl = signal('');
+  readonly qrDataUrl = signal('');
+  readonly qrError = signal('');
 
   editing: Branch | null = null;
 
@@ -96,6 +103,38 @@ export class BranchDetailComponent implements OnInit {
   selectTab(tab: DetailTab): void {
     this.activeTab.set(tab);
     this.error.set('');
+
+    if (tab === 'qr') {
+      void this.#loadQr();
+    }
+  }
+
+  #loadQr(): void {
+    const branch = this.branch();
+
+    if (!branch) {
+      return;
+    }
+
+    const url = `${environment.publicUrl}/q/${branch.tenantId}/${branch._id}`;
+    this.qrUrl.set(url);
+    this.qrError.set('');
+
+    QRCode.toDataURL(url, { width: 320, margin: 1 })
+      .then((dataUrl) => this.qrDataUrl.set(dataUrl))
+      .catch(() => this.qrError.set('No se pudo generar el código QR.'));
+  }
+
+  copyQrUrl(): void {
+    const url = this.qrUrl();
+
+    if (!url) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(url).then(() => {
+      this.qrError.set('');
+    });
   }
 
   togglePaymentMethod(method: PaymentMethod): void {

@@ -59,7 +59,7 @@ The system SHALL provide a migration that creates a `branches` collection in Mon
 - **THEN** the `branches` collection has an index on `tenantId` and an index on `active`.
 
 ### Requirement: Orders collection schema
-The system SHALL provide a migration that creates an `orders` collection in MongoDB where each order document contains `tenantId` (reference to a tenant), `foodtruckId` (reference to a branch), `status` (e.g., `pending`), `clientContact`, `items`, `total`, `createdAt`, and `updatedAt` fields. Each order item SHALL contain a `dishId` (reference to a dish), `name` (snapshot of the dish name), `price` (snapshot of the dish sale price), `quantity`, and `stockApplied` (boolean indicating whether the dish's ingredients were deducted from warehouse stock).
+The system SHALL provide a migration that creates an `orders` collection in MongoDB where each order document contains `tenantId` (reference to a tenant), `foodtruckId` (reference to a branch), `status` (e.g., `pending`), `clientContact`, `items`, `total`, `createdAt`, and `updatedAt` fields. Each order item SHALL contain a `dishId` (reference to a dish), `name` (snapshot of the dish name), `price` (snapshot of the dish sale price), `quantity`, and `stockApplied` (boolean indicating whether the dish's ingredients were deducted from warehouse stock). Onward from the migration, the system SHALL store on each order `clientPhone` (the customer's WhatsApp number, a string, present for public QR orders) and `pointsAwarded` (boolean flag, present and true once loyalty points were granted for the order). The existing `clientContact` free-form string SHALL remain unchanged.
 
 #### Scenario: Applying the migration creates the orders collection
 - **WHEN** the migration runs on a database without an `orders` collection
@@ -72,6 +72,43 @@ The system SHALL provide a migration that creates an `orders` collection in Mong
 #### Scenario: Order lookups by tenant and branch are indexed
 - **WHEN** the migration has run
 - **THEN** the `orders` collection has indexes on `tenantId` and `foodtruckId`.
+
+#### Scenario: Public orders store the phone
+- **WHEN** a public QR order is stored with `clientPhone`
+- **THEN** the document is accepted with `clientContact` still optional and `clientPhone` retrievable
+
+#### Scenario: Awarded orders carry the flag
+- **WHEN** an order's points have been granted
+- **THEN** the document stores `pointsAwarded` as true
+
+### Requirement: Customers collection schema
+The system SHALL provide a migration that creates a `customers` collection in MongoDB where each document contains `tenantId` (reference to a tenant), `phone` (WhatsApp number), optional `firstName`, `pointsBalance` (integer, default 0), and `createdAt`/`updatedAt`. `(tenantId, phone)` SHALL be unique.
+
+#### Scenario: Applying the migration creates the customers collection
+- **WHEN** the migration runs on a database without a `customers` collection
+- **THEN** a `customers` collection exists, indexed on `tenantId` and enforcing uniqueness of `phone` within each tenant
+
+#### Scenario: Duplicate phones within a tenant are rejected
+- **WHEN** a customer is stored with a `(tenantId, phone)` pair that already exists
+- **THEN** the insert fails on the unique index
+
+### Requirement: Loyalty transactions collection schema
+The system SHALL provide a migration that creates a `loyalty-transactions` collection in MongoDB where each document is an immutable ledger entry containing `tenantId`, `branchId`, `customerId`, `type` (`earn`), `points` (integer), `sourceOrderId` (reference to the order that produced it), and `createdAt`. The collection SHALL be indexed on `customerId` and `sourceOrderId`.
+
+#### Scenario: Applying the migration creates the loyalty-transactions collection
+- **WHEN** the migration runs on a database without a `loyalty-transactions` collection
+- **THEN** a `loyalty-transactions` collection exists with the documented fields and indexes
+
+#### Scenario: One transaction per award
+- **WHEN** an order earns points
+- **THEN** exactly one ledger entry is stored for the order, referencing it via `sourceOrderId`
+
+### Requirement: Tenant loyalty configuration
+The `tenants` collection SHALL accept an optional `loyalty` document with `pointsPerAmount` (positive integer, CLP per point) and `currency` (default `CLP`); its absence or a zero `pointsPerAmount` disables awarding.
+
+#### Scenario: Storing the loyalty rule
+- **WHEN** an `admin` updates the tenant with `loyalty: {pointsPerAmount: 1000, currency: "CLP"}`
+- **THEN** the tenant document stores the rule and existing tenants without `loyalty` remain valid
 
 ### Requirement: Inventory collections schema
 The system SHALL provide a migration that creates `ingredients`, `dishes`, `stocks`, and `inventory-movements` collections, scoped by `tenantId`. Each `stocks` document SHALL represent a purchase batch with `tenantId` (reference to a tenant), `branchId` (reference to a branch), `ingredientId` (reference to an ingredient), `quantity` (remaining quantity), `unitCost` (landed unit cost of the batch), and `createdAt`. Each `inventory-movements` document SHALL contain `tenantId`, `branchId`, `ingredientId`, `quantity` (signed change), `unitCost`, `batchId` (when applicable), `reason`, `orderId` (when applicable), `userId`, and `createdAt`.

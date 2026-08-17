@@ -11,6 +11,12 @@ interface TenantForm {
   active: boolean;
 }
 
+interface LoyaltyEdit {
+  tenant: Tenant;
+  pointsPerAmount: string;
+  currency: string;
+}
+
 const EMPTY_FORM: TenantForm = {
   name: '',
   rut: '',
@@ -36,6 +42,7 @@ export class TenantsComponent implements OnInit {
 
   editing: Tenant | null = null;
   newTenant: TenantForm = { ...EMPTY_FORM };
+  loyaltyEdit: LoyaltyEdit | null = null;
 
   ngOnInit(): void {
     this.#load();
@@ -95,6 +102,80 @@ export class TenantsComponent implements OnInit {
 
   startEdit(tenant: Tenant): void {
     this.editing = { ...tenant };
+  }
+
+  startLoyaltyEdit(tenant: Tenant): void {
+    this.loyaltyEdit = {
+      tenant: { ...tenant },
+      pointsPerAmount: String(tenant.loyalty?.pointsPerAmount ?? ''),
+      currency: tenant.loyalty?.currency ?? 'CLP',
+    };
+  }
+
+  cancelLoyaltyEdit(): void {
+    this.loyaltyEdit = null;
+  }
+
+  currentLoyaltyLabel(): string {
+    const points = this.loyaltyEdit?.tenant.loyalty?.pointsPerAmount;
+    return points ? `regla actual: $${points}` : 'sin regla configurada';
+  }
+
+  saveLoyaltyEdit(): void {
+    if (!this.loyaltyEdit) {
+      return;
+    }
+
+    const points = Number(this.loyaltyEdit.pointsPerAmount);
+
+    if (!Number.isInteger(points) || points <= 0) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.error.set('');
+
+    this.#tenantService
+      .update(this.loyaltyEdit.tenant._id, {
+        loyalty: {
+          pointsPerAmount: points,
+          currency: this.loyaltyEdit.currency || 'CLP',
+        },
+      })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.loyaltyEdit = null;
+          this.#load();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.error.set(err.error?.error ?? 'No se pudo guardar la regla de puntos.');
+        }
+      });
+  }
+
+  disableLoyalty(): void {
+    if (!this.loyaltyEdit) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.error.set('');
+
+    this.#tenantService
+      .update(this.loyaltyEdit.tenant._id, { loyalty: null })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.loyaltyEdit = null;
+          this.#load();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.error.set(err.error?.error ?? 'No se pudo desactivar la regla de puntos.');
+        }
+      });
   }
 
   openBranches(tenant: Tenant): void {

@@ -1,0 +1,23 @@
+:root {
+  --bg: #fff8f0;
+  --surface: #ffffff;
+  --ink: #241a12;
+  --muted: #8a7a66;
+  --accent: #e74c1e;
+  --accent-contrast: #ffffff;
+  --border: #f0e4d6;
+  --shadow: 0 6px 24px rgb(36 26 18 / 10%);
+  --radius: 14px;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', sans-serif;
+}

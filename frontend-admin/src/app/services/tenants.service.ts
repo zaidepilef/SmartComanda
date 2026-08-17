@@ -12,6 +12,10 @@ export interface Tenant {
   active: boolean;
   userCount: number;
   branchCount: number;
+  loyalty?: {
+    pointsPerAmount: number;
+    currency?: string;
+  };
 }
 
 export interface TenantCreatePayload {
@@ -26,6 +30,7 @@ export interface TenantUpdatePayload {
   rut?: string;
   razonSocial?: string;
   active?: boolean;
+  loyalty?: { pointsPerAmount: number; currency?: string } | null;
 }
 
 @Injectable({ providedIn: 'root' })

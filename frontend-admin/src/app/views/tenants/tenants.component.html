@@ -199,6 +199,12 @@
                     >
                       Editar
                     </button>
+                    <button
+                      class="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-slate-800"
+                      (click)="startLoyaltyEdit(tenant)"
+                    >
+                      Puntos
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -215,3 +221,81 @@
     </div>
   </div>
 </div>
+
+@if (loyaltyEdit) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    (click)="cancelLoyaltyEdit()"
+  >
+    <div
+      class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900"
+      (click)="$event.stopPropagation()"
+    >
+      <h6 class="mb-1 font-semibold text-gray-900 dark:text-white">
+        Regla de puntos — {{ loyaltyEdit.tenant.name }}
+      </h6>
+      <p class="mb-4 text-xs text-gray-500 dark:text-slate-400">
+        Los clientes acumulan 1 punto por cada monto gastado. Los puntos se acreditan al cobrar en caja un pedido QR.
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="loyaltyAmount">
+            $ por punto (CLP)
+          </label>
+          <input
+            id="loyaltyAmount"
+            type="number"
+            min="1"
+            step="1"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            [(ngModel)]="loyaltyEdit.pointsPerAmount"
+            name="loyaltyAmount"
+            required
+          />
+          <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Ejemplo: con 1000, un pedido de $4.500 suma 4 puntos ({{ currentLoyaltyLabel() }}).
+          </p>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300" for="loyaltyCurrency">
+            Moneda
+          </label>
+          <input
+            id="loyaltyCurrency"
+            type="text"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            [(ngModel)]="loyaltyEdit.currency"
+            name="loyaltyCurrency"
+          />
+        </div>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button
+          type="button"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+          [disabled]="saving()"
+          (click)="saveLoyaltyEdit()"
+        >
+          {{ saving() ? 'Guardando...' : 'Guardar regla' }}
+        </button>
+        <button
+          type="button"
+          class="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-slate-800"
+          [disabled]="saving()"
+          (click)="disableLoyalty()"
+        >
+          Desactivar
+        </button>
+        <button
+          type="button"
+          class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          (click)="cancelLoyaltyEdit()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}

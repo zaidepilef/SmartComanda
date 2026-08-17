@@ -42,6 +42,7 @@ export interface Order {
   paymentStatus: string;
   paymentMethod?: PaymentMethod;
   clientContact?: string;
+  clientPhone?: string;
   items: OrderItem[];
   total: number;
   createdAt: string;
@@ -51,6 +52,7 @@ export interface Order {
 export interface CreateOrderPayload {
   foodtruckId: string;
   clientContact?: string;
+  clientPhone?: string;
   orderType: OrderType;
   paymentMethod?: PaymentMethod;
   items: OrderItemInput[];
@@ -64,6 +66,7 @@ export interface OrderWarning {
 export interface CreateOrderResponse {
   order: Order;
   warnings: OrderWarning[];
+  pointsEarned?: number;
 }
 
 @Injectable({ providedIn: 'root' })

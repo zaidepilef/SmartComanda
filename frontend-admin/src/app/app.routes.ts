@@ -73,6 +73,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'qr-codes',
+        loadComponent: () => import('./views/qr-codes/qr-codes.component').then((m) => m.QrCodesComponent),
+        canActivate: [authGuard, roleGuard(managerRoles)],
+        data: {
+          title: 'QR de pedidos'
+        }
+      },
+      {
         path: 'ingredients',
         loadComponent: () => import('./views/ingredients/ingredients.component').then((m) => m.IngredientsComponent),
         canActivate: [authGuard, roleGuard(managerRoles)],
