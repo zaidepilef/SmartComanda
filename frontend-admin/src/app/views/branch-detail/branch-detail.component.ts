@@ -3,9 +3,16 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 
-import { Branch, BranchService } from '../../services/branches.service';
+import { Branch, BranchService, PaymentMethod } from '../../services/branches.service';
 
 type DetailTab = 'config' | 'menu' | 'tables' | 'schedules' | 'settings';
+
+const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Efectivo' },
+  { value: 'debit', label: 'Débito' },
+  { value: 'credit', label: 'Crédito' },
+  { value: 'transfer', label: 'Transferencia' },
+];
 
 const TAB_LABELS: Record<DetailTab, string> = {
   config: 'Configuración',
@@ -38,6 +45,8 @@ export class BranchDetailComponent implements OnInit {
 
   readonly tabs: DetailTab[] = ALL_TABS;
 
+  readonly paymentMethodOptions = PAYMENT_METHOD_OPTIONS;
+
   editing: Branch | null = null;
 
   ngOnInit(): void {
@@ -58,7 +67,10 @@ export class BranchDetailComponent implements OnInit {
     this.#branchService.getById(id).subscribe({
       next: (branch) => {
         this.branch.set(branch);
-        this.editing = { ...branch };
+        this.editing = {
+          ...branch,
+          paymentMethods: branch.paymentMethods ?? [],
+        };
         this.loading.set(false);
       },
       error: (err) => {
@@ -86,6 +98,23 @@ export class BranchDetailComponent implements OnInit {
     this.error.set('');
   }
 
+  togglePaymentMethod(method: PaymentMethod): void {
+    if (!this.editing) {
+      return;
+    }
+
+    const methods = this.editing.paymentMethods ?? [];
+    const index = methods.indexOf(method);
+
+    if (index >= 0) {
+      methods.splice(index, 1);
+    } else {
+      methods.push(method);
+    }
+
+    this.editing.paymentMethods = methods;
+  }
+
   saveEdit(): void {
     if (!this.editing) {
       return;
@@ -95,6 +124,9 @@ export class BranchDetailComponent implements OnInit {
     this.error.set('');
 
     const { _id, tenantId, name, type, address, city, phone, active } = this.editing;
+    const paymentMethods = this.editing.paymentMethods?.length
+      ? this.editing.paymentMethods
+      : undefined;
 
     this.#branchService
       .update(_id, {
@@ -105,6 +137,7 @@ export class BranchDetailComponent implements OnInit {
         city: city || undefined,
         phone: phone || undefined,
         active,
+        paymentMethods,
       })
       .subscribe({
         next: (updated) => {

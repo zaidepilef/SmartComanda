@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
 import { AppIconName, IconComponent } from '../../icons/icon.component';
-import { Branch, BranchService, BranchType } from '../../services/branches.service';
+import { Branch, BranchService, BranchType, PaymentMethod } from '../../services/branches.service';
 import { Tenant, TenantService } from '../../services/tenants.service';
 
 interface BranchForm {
@@ -15,6 +15,7 @@ interface BranchForm {
   city: string;
   phone: string;
   active: boolean;
+  paymentMethods: PaymentMethod[];
 }
 
 const EMPTY_FORM: BranchForm = {
@@ -25,7 +26,15 @@ const EMPTY_FORM: BranchForm = {
   city: '',
   phone: '',
   active: true,
+  paymentMethods: [],
 };
+
+const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Efectivo' },
+  { value: 'debit', label: 'Débito' },
+  { value: 'credit', label: 'Crédito' },
+  { value: 'transfer', label: 'Transferencia' },
+];
 
 const BRANCH_TYPE_LABELS: Record<BranchType, string> = {
   Sucursal: 'Sucursal',
@@ -69,6 +78,8 @@ export class BranchesComponent implements OnInit {
   readonly error = signal('');
   readonly saving = signal(false);
   readonly creating = signal(false);
+
+  readonly paymentMethodOptions = PAYMENT_METHOD_OPTIONS;
 
   readonly isSysadmin = this.#authService.user()?.role === 'sysadmin';
 
@@ -162,6 +173,16 @@ export class BranchesComponent implements OnInit {
     this.creating.set(false);
   }
 
+  toggleNewPaymentMethod(method: PaymentMethod): void {
+    const index = this.newBranch.paymentMethods.indexOf(method);
+
+    if (index >= 0) {
+      this.newBranch.paymentMethods.splice(index, 1);
+    } else {
+      this.newBranch.paymentMethods.push(method);
+    }
+  }
+
   saveCreate(): void {
     if (!this.newBranch.tenantId) {
       this.error.set('Selecciona un tenant para la sucursal.');
@@ -172,6 +193,9 @@ export class BranchesComponent implements OnInit {
     this.error.set('');
 
     const { tenantId, name, type, address, city, phone, active } = this.newBranch;
+    const paymentMethods = this.newBranch.paymentMethods?.length
+      ? this.newBranch.paymentMethods
+      : undefined;
 
     this.#branchService
       .create({
@@ -182,6 +206,7 @@ export class BranchesComponent implements OnInit {
         city: city || undefined,
         phone: phone || undefined,
         active,
+        paymentMethods,
       })
       .subscribe({
         next: () => {

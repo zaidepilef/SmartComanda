@@ -18,6 +18,8 @@ interface DishForm {
   salePrice: number;
   recipe: RecipeFormLine[];
   branchPrices: BranchPrice[];
+  category: string;
+  icon: string;
 }
 
 const EMPTY_FORM: DishForm = {
@@ -26,6 +28,8 @@ const EMPTY_FORM: DishForm = {
   salePrice: 0,
   recipe: [],
   branchPrices: [],
+  category: '',
+  icon: '',
 };
 
 @Component({
@@ -232,9 +236,11 @@ export class DishesComponent implements OnInit {
       unit: this.ingredientUnit(line.ingredientId),
     }));
     const branchPrices = this.newDish.branchPrices?.length ? this.newDish.branchPrices : undefined;
+    const category = this.newDish.category.trim() || undefined;
+    const icon = this.newDish.icon.trim() || undefined;
 
     this.#dishService
-      .create({ tenantId, name, salePrice, recipe, branchPrices, active: true })
+      .create({ tenantId, name, salePrice, recipe, branchPrices, active: true, category, icon })
       .subscribe({
         next: () => {
           this.saving.set(false);
@@ -251,6 +257,8 @@ export class DishesComponent implements OnInit {
   startEdit(dish: Dish): void {
     this.editing = {
       ...dish,
+      category: dish.category ?? '',
+      icon: dish.icon ?? '',
       recipe: dish.recipe.map((line) => ({ ...line })),
       branchPrices: (dish.branchPrices ?? []).map((entry) => ({ ...entry })),
     };
@@ -284,9 +292,11 @@ export class DishesComponent implements OnInit {
     const branchPrices = this.editing.branchPrices?.length
       ? this.editing.branchPrices
       : undefined;
+    const category = this.editing.category?.trim() || undefined;
+    const icon = this.editing.icon?.trim() || undefined;
 
     this.#dishService
-      .update(_id, { name, salePrice, recipe, branchPrices })
+      .update(_id, { name, salePrice, recipe, branchPrices, category, icon })
       .subscribe({
         next: () => {
           this.saving.set(false);

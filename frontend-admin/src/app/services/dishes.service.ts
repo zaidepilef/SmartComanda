@@ -25,6 +25,8 @@ export interface Dish {
   cost?: number;
   active: boolean;
   description?: string;
+  category?: string;
+  icon?: string;
 }
 
 export interface DishPayload {
@@ -35,6 +37,8 @@ export interface DishPayload {
   branchPrices?: BranchPrice[];
   active: boolean;
   description?: string;
+  category?: string;
+  icon?: string;
 }
 
 export interface DishUpdatePayload {
@@ -44,6 +48,8 @@ export interface DishUpdatePayload {
   branchPrices?: BranchPrice[];
   active?: boolean;
   description?: string;
+  category?: string;
+  icon?: string;
 }
 
 @Injectable({ providedIn: 'root' })

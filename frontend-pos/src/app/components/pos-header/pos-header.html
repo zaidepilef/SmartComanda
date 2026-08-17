@@ -1,0 +1,28 @@
+<header>
+  <div class="brand">
+    <span class="logo">🍔</span>
+    <div>
+      <div class="brand-name">SmartComanda</div>
+      <div class="brand-branch">{{ branch()?.name ?? 'POS' }}</div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="clock">
+      <span>{{ timeLabel() }}</span>
+      <span class="date">{{ dateLabel() }}</span>
+    </div>
+
+    @if (cashSession()) {
+      <div class="cash-badge" title="Caja abierta">
+        <span class="dot"></span>
+        Caja abierta
+      </div>
+    }
+
+    <nav class="header-nav">
+      <a routerLink="/pos" routerLinkActive="active">Pedidos</a>
+      <button (click)="goToCaja()">Caja</button>
+    </nav>
+  </div>
+</header>

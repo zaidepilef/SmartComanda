@@ -6,6 +6,8 @@ import { environment } from '../../environments/environment';
 
 export type BranchType = 'Sucursal' | 'FoodTruck';
 
+export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'transfer';
+
 export interface Branch {
   _id: string;
   tenantId: string;
@@ -15,6 +17,7 @@ export interface Branch {
   city?: string;
   phone?: string;
   active: boolean;
+  paymentMethods?: PaymentMethod[];
 }
 
 export interface BranchCreatePayload {
@@ -25,6 +28,7 @@ export interface BranchCreatePayload {
   city?: string;
   phone?: string;
   active: boolean;
+  paymentMethods?: PaymentMethod[];
 }
 
 export interface BranchUpdatePayload {
@@ -35,6 +39,7 @@ export interface BranchUpdatePayload {
   city?: string;
   phone?: string;
   active?: boolean;
+  paymentMethods?: PaymentMethod[];
 }
 
 @Injectable({ providedIn: 'root' })
