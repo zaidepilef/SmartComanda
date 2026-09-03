@@ -7,8 +7,10 @@ services:
     container_name: smartcomanda_postgres
     restart: unless-stopped
 
+    entrypoint: ["/postgres/entrypoint.sh"]
+
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
@@ -18,6 +20,8 @@ services:
     volumes:
       - smartcomanda_postgres_data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres/init.d:/init.d
+      - ./postgres/entrypoint.sh:/postgres/entrypoint.sh:ro
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin"]

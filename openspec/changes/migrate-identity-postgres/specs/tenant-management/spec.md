@@ -1,0 +1,62 @@
+## MODIFIED Requirements
+
+### Requirement: List tenants
+The system SHALL expose `GET /api/tenants` returning the list of tenants from PostgreSQL, requiring a valid Bearer token. Each tenant SHALL include `id` (UUID), `name`, `rut`, `razonSocial`, `active`, `userCount` (the number of users whose `tenantId` references the tenant), and `branchCount` (the number of branches whose `tenantId` references the tenant). The list SHALL be tenant-scoped: a non-sysadmin user SHALL only receive the tenant matching its own `tenantId` (at most one), while a user whose roles include `sysadmin` SHALL receive all tenants.
+
+#### Scenario: Listing tenants as sysadmin
+- **WHEN** an authenticated user whose roles include `sysadmin` GETs `/api/tenants`
+- **THEN** the API responds with HTTP 200 and the list of active and inactive tenants.
+
+#### Scenario: Listing tenants as a tenant user
+- **WHEN** an authenticated non-sysadmin user GETs `/api/tenants`
+- **THEN** the API responds with HTTP 200 and a list containing only the tenant matching the user's own `tenantId` (an empty list when the user has no tenant).
+
+#### Scenario: Listing tenants without authentication
+- **WHEN** a client GETs `/api/tenants` without a valid Bearer token
+- **THEN** the API responds with HTTP 401 and no tenant data is returned.
+
+#### Scenario: Listing only active tenants for assignment
+- **WHEN** the admin UI requests tenants to populate a user-assignment selector
+- **THEN** the API supports filtering the list to only active tenants (e.g., `GET /api/tenants?active=true`).
+
+#### Scenario: Counting users per tenant
+- **WHEN** a client GETs `/api/tenants`
+- **THEN** each tenant includes a `userCount` field with the number of users referencing it, without returning user data.
+
+#### Scenario: Counting branches per tenant
+- **WHEN** a client GETs `/api/tenants`
+- **THEN** each tenant includes a `branchCount` field with the number of branches referencing it, without returning branch data.
+
+### Requirement: Create tenant
+The system SHALL expose `POST /api/tenants`, restricted to users whose roles include `sysadmin`, to create a tenant with `name` (required), `rut`, `razonSocial`, and `active` fields in PostgreSQL. The `rut` SHALL follow a lax Chilean format (`\d{1,2}\.\d{3}\.\d{3}-[\dkK]`); no digit-verifier validation is required.
+
+#### Scenario: Creating a tenant as sysadmin
+- **WHEN** an authenticated user whose roles include `sysadmin` POSTs a valid tenant payload to `/api/tenants`
+- **THEN** the API creates the tenant and responds with HTTP 201 and the created tenant including `userCount` 0.
+
+#### Scenario: Creating a tenant without sysadmin role
+- **WHEN** a user whose roles do not include `sysadmin` POSTs to `/api/tenants`
+- **THEN** the API responds with HTTP 403 and no tenant is created.
+
+#### Scenario: Rejecting an invalid payload
+- **WHEN** a client POSTs a tenant payload with a missing `name` or a malformed `rut`
+- **THEN** the API responds with HTTP 400 and no tenant is created.
+
+#### Scenario: Rejecting a duplicate RUT
+- **WHEN** a client POSTs a tenant whose `rut` already belongs to another tenant
+- **THEN** the API responds with HTTP 409 and no tenant is created.
+
+### Requirement: Update tenant
+The system SHALL expose `PUT /api/tenants/:id`, restricted to users whose roles include `sysadmin`, to update `name`, `rut`, `razonSocial`, and `active` of an existing tenant in PostgreSQL.
+
+#### Scenario: Updating a tenant as sysadmin
+- **WHEN** an authenticated user whose roles include `sysadmin` PUTs a valid payload to `/api/tenants/:id` for an existing tenant
+- **THEN** the API updates the tenant and responds with HTTP 200 and the updated tenant with its current `userCount`.
+
+#### Scenario: Updating a nonexistent tenant
+- **WHEN** a client PUTs to `/api/tenants/:id` with a non-existent tenant id
+- **THEN** the API responds with HTTP 404 and an error message.
+
+#### Scenario: Updating to a duplicate RUT
+- **WHEN** a client updates a tenant to a `rut` that already belongs to another tenant
+- **THEN** the API responds with HTTP 409 and no tenant is modified.

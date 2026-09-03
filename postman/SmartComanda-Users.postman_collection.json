@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a1d3c2b4-9e8f-4a6b-b5c7-2d1e0f9a8b7c",
     "name": "SmartComanda - API",
-    "description": "Colección Postman para la API de SmartComanda (specs: openspec/specs/mongodb-infrastructure, openspec/specs/users/spec.md y openspec/changes/add-user-auth-jwt/specs/user-auth/spec.md).\n\nBase URL: http://localhost:3000 (configurable vía variable `baseUrl`).\n\nAutenticación: los endpoints de Users requieren el header `Authorization: Bearer <token>`. El request Login guarda el token automáticamente en la variable `token`; el resto usa `{{token}}`.",
+    "description": "Colección Postman para la API de SmartComanda (identity over PostgreSQL, spec: openspec/changes/migrate-identity-postgres).\n\nBase URL: http://localhost:3000 (configurable vía variable `baseUrl`).\n\nAutenticación: los endpoints de Users requieren el header `Authorization: Bearer <token>`. El request Login guarda el token automáticamente en la variable `token`; el resto usa `{{token}}`.\n\nCAPTCHA (Cloudflare Turnstile): el endpoint `POST /api/auth/register` exige el campo `captchaToken` (token generado por el widget Turnstile del frontend). El backend lo valida contra Cloudflare con la clave `TURNSTILE_SECRET_KEY`. En desarrollo, si `TURNSTILE_SECRET_KEY` no está configurada, el registro devolverá 400 «Captcha verification failed.». Usa la variable `captchaToken` para pegar un token real del widget.\n\nMulti-rol: los usuarios exponen `roles` (array) en lugar del `role` singular. El login y el JWT incluyen el set de roles.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,10 @@
     },
     {
       "key": "token",
+      "value": ""
+    },
+    {
+      "key": "captchaToken",
       "value": ""
     }
   ],
@@ -175,14 +179,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Luis\",\n  \"lastName\": \"Perez\",\n  \"email\": \"luis@test.com\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"firstName\": \"Luis\",\n  \"lastName\": \"Perez\",\n  \"email\": \"luis@test.com\",\n  \"password\": \"password123\",\n  \"captchaToken\": \"{{captchaToken}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Registra un nuevo usuario (reutiliza el servicio de creación de usuarios). Password mínimo 8 caracteres. Respuesta 201 con el usuario público (sin passwordHash)."
+            "description": "Registra un nuevo usuario. Body: firstName, lastName, email, password (mín. 8 caracteres) y `captchaToken` (OBLIGATORIO — token de Cloudflare Turnstile generado por el widget del frontend).\n\nEl backend valida `captchaToken` contra Cloudflare usando `TURNSTILE_SECRET_KEY`. Si la clave no está configurada o el token no es válido, responde 400 «Captcha verification failed.». Completa la variable `captchaToken` (pestaña Variables de la colección) con un token real del widget.\n\nRespuesta 201 con el usuario público (incluye `roles` como array). El usuario nacido por registro queda en estado `pending` hasta ser activado."
           },
           "response": [
             {
@@ -208,7 +212,38 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "body": "{\n  \"_id\": \"6a7d0acf045e2643473ea97e\",\n  \"firstName\": \"Luis\",\n  \"lastName\": \"Perez\",\n  \"email\": \"luis@test.com\",\n  \"status\": \"active\",\n  \"createdAt\": \"2026-08-13T00:07:43.436Z\",\n  \"updatedAt\": \"2026-08-13T00:07:43.436Z\"\n}",
+              "body": "{\n  \"_id\": \"6a7d0acf045e2643473ea97e\",\n  \"firstName\": \"Luis\",\n  \"lastName\": \"Perez\",\n  \"email\": \"luis@test.com\",\n  \"status\": \"pending\",\n  \"roles\": [\"cashier\"],\n  \"createdAt\": \"2026-08-13T00:07:43.436Z\",\n  \"updatedAt\": \"2026-08-13T00:07:43.436Z\"\n}",
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ]
+            },
+            {
+              "name": "400 Captcha failed",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "auth", "register"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Luis\",\n  \"lastName\": \"Perez\",\n  \"email\": \"luis@test.com\",\n  \"password\": \"password123\",\n  \"captchaToken\": \"invalid-or-missing\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": \"Captcha verification failed.\"\n}",
               "header": [
                 {
                   "key": "content-type",

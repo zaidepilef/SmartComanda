@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Provides a minimal tenants read capability for the admin UI — the API lists tenants so the sysadmin can assign users to a tenant when creating or editing users, backed by the `tenants` collection created by the data model migration.
+Provides tenants management for the admin UI — the API lists, creates, and updates tenants so the sysadmin can assign users to a tenant, backed by the `tenant` table created by the data model migration.
 
 ## Requirements
 
 ### Requirement: List tenants
-The system SHALL expose `GET /api/tenants` returning the list of tenants, requiring a valid Bearer token. Each tenant SHALL include `_id`, `name`, `rut`, `razonSocial`, `active`, `userCount` (the number of users whose `tenantId` references the tenant), and `branchCount` (the number of branches whose `tenantId` references the tenant). The list SHALL be tenant-scoped: a non-sysadmin user SHALL only receive the tenant matching its own `tenantId` (at most one), while a `sysadmin` SHALL receive all tenants.
+The system SHALL expose `GET /api/tenants` returning the list of tenants from PostgreSQL, requiring a valid Bearer token. Each tenant SHALL include `id` (UUID), `name`, `rut`, `razonSocial`, `active`, `userCount` (the number of users whose `tenantId` references the tenant), and `branchCount` (the number of branches whose `tenantId` references the tenant). The list SHALL be tenant-scoped: a non-sysadmin user SHALL only receive the tenant matching its own `tenantId` (at most one), while a user whose roles include `sysadmin` SHALL receive all tenants.
 
 #### Scenario: Listing tenants as sysadmin
-- **WHEN** an authenticated `sysadmin` GETs `/api/tenants`
+- **WHEN** an authenticated user whose roles include `sysadmin` GETs `/api/tenants`
 - **THEN** the API responds with HTTP 200 and the list of active and inactive tenants.
 
 #### Scenario: Listing tenants as a tenant user
@@ -34,14 +34,14 @@ The system SHALL expose `GET /api/tenants` returning the list of tenants, requir
 - **THEN** each tenant includes a `branchCount` field with the number of branches referencing it, without returning branch data.
 
 ### Requirement: Create tenant
-The system SHALL expose `POST /api/tenants`, restricted to users with the `sysadmin` role, to create a tenant with `name` (required), `rut`, `razonSocial`, and `active` fields. The `rut` SHALL follow a lax Chilean format (`\d{1,2}\.\d{3}\.\d{3}-[\dkK]`); no digit-verifier validation is required.
+The system SHALL expose `POST /api/tenants`, restricted to users whose roles include `sysadmin`, to create a tenant with `name` (required), `rut`, `razonSocial`, and `active` fields in PostgreSQL. The `rut` SHALL follow a lax Chilean format (`\d{1,2}\.\d{3}\.\d{3}-[\dkK]`); no digit-verifier validation is required.
 
 #### Scenario: Creating a tenant as sysadmin
-- **WHEN** an authenticated `sysadmin` POSTs a valid tenant payload to `/api/tenants`
+- **WHEN** an authenticated user whose roles include `sysadmin` POSTs a valid tenant payload to `/api/tenants`
 - **THEN** the API creates the tenant and responds with HTTP 201 and the created tenant including `userCount` 0.
 
 #### Scenario: Creating a tenant without sysadmin role
-- **WHEN** a user whose role is not `sysadmin` POSTs to `/api/tenants`
+- **WHEN** a user whose roles do not include `sysadmin` POSTs to `/api/tenants`
 - **THEN** the API responds with HTTP 403 and no tenant is created.
 
 #### Scenario: Rejecting an invalid payload
@@ -53,10 +53,10 @@ The system SHALL expose `POST /api/tenants`, restricted to users with the `sysad
 - **THEN** the API responds with HTTP 409 and no tenant is created.
 
 ### Requirement: Update tenant
-The system SHALL expose `PUT /api/tenants/:id`, restricted to users with the `sysadmin` role, to update `name`, `rut`, `razonSocial`, and `active` of an existing tenant.
+The system SHALL expose `PUT /api/tenants/:id`, restricted to users whose roles include `sysadmin`, to update `name`, `rut`, `razonSocial`, and `active` of an existing tenant in PostgreSQL.
 
 #### Scenario: Updating a tenant as sysadmin
-- **WHEN** an authenticated `sysadmin` PUTs a valid payload to `/api/tenants/:id` for an existing tenant
+- **WHEN** an authenticated user whose roles include `sysadmin` PUTs a valid payload to `/api/tenants/:id` for an existing tenant
 - **THEN** the API updates the tenant and responds with HTTP 200 and the updated tenant with its current `userCount`.
 
 #### Scenario: Updating a nonexistent tenant

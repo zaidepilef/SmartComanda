@@ -2,16 +2,16 @@
 
 ## Purpose
 
-Provides a complete CRUD API for the user entity backed by MongoDB, with versioned schema migrations run at backend startup and password security by design.
+Provides a complete CRUD API for the user entity backed by PostgreSQL, with versioned schema migrations run at backend startup and password security by design. Users are multi-role: each user may hold a set of roles via the `user_roles` relationship.
 
 ## Requirements
 
-### Requirement: User entity persisted in MongoDB
-The system SHALL persist users in a `users` collection in MongoDB with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive/pending), `createdAt`, and `updatedAt`. The system SHALL also persist `role` (one of `sysadmin`, `owner`, `admin`, `cashier`) and, when assigned, `tenantId` (reference to an existing tenant), `name` (optional display name), and timestamps.
+### Requirement: User entity persisted in PostgreSQL
+The system SHALL persist users in a `users` table in PostgreSQL with the following fields: `firstName`, `lastName`, `email`, `passwordHash`, `status` (active/inactive/pending), `createdAt`, and `updatedAt`. The system SHALL also persist `tenantId` (reference to an existing tenant), `name` (optional display name), and a set of roles (`sysadmin`, `owner`, `admin`, `cashier`) stored through the `user_roles` relationship.
 
 #### Scenario: Creating a user persists all fields
 - **WHEN** a valid user is created through the API
-- **THEN** the user is stored in the `users` collection with all required fields populated.
+- **THEN** the user is stored in the `users` table with all required fields populated and its roles linked via `user_roles`.
 
 #### Scenario: Email is unique
 - **WHEN** a user is created or updated with an email that already belongs to another user
@@ -21,12 +21,12 @@ The system SHALL persist users in a `users` collection in MongoDB with the follo
 - **WHEN** a user is created through the public registration endpoint
 - **THEN** the user is stored with `pending` status.
 
-#### Scenario: Creating a user with role and tenant
-- **WHEN** an authenticated `sysadmin` creates a user providing `role` and `tenantId`
+#### Scenario: Creating a user with roles and tenant
+- **WHEN** an authenticated `sysadmin` creates a user providing `roles` and `tenantId`
 - **THEN** the user is stored with those values and returned without the password hash.
 
 #### Scenario: Rejecting an unknown role
-- **WHEN** a user is created or updated with a `role` other than `sysadmin`, `owner`, `admin`, or `cashier`
+- **WHEN** a user is created or updated with a role other than `sysadmin`, `owner`, `admin`, or `cashier`
 - **THEN** the API responds with HTTP 400 and no user is created or modified.
 
 #### Scenario: Rejecting a nonexistent tenant
@@ -34,14 +34,14 @@ The system SHALL persist users in a `users` collection in MongoDB with the follo
 - **THEN** the API responds with HTTP 400 and no user is created or modified.
 
 ### Requirement: CRUD API for users
-The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system. Create, update, and delete operations SHALL be restricted to users with the `sysadmin` role, or to users with the `admin` role operating within their own tenant. User reads SHALL be tenant-scoped: a non-sysadmin user SHALL only see users whose `tenantId` matches its own; a `sysadmin` SHALL see all users.
+The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system. Create, update, and delete operations SHALL be restricted to users whose roles include `sysadmin`, or to users whose roles include `admin` operating within their own tenant. User reads SHALL be tenant-scoped: a non-sysadmin user SHALL only see users whose `tenantId` matches its own; a user with the `sysadmin` role SHALL see all users.
 
 #### Scenario: Creating a user
 - **WHEN** an authenticated `sysadmin` POSTs a valid user payload to `/api/users`
 - **THEN** the API creates the user and responds with HTTP 201 and the created user without the password hash.
 
 #### Scenario: Creating a user without authorized role
-- **WHEN** a user whose role is neither `sysadmin` nor `admin` POSTs to `/api/users`
+- **WHEN** a user whose roles are neither `sysadmin` nor `admin` POSTs to `/api/users`
 - **THEN** the API responds with HTTP 403 and no user is created.
 
 #### Scenario: Admin creating a user in its own tenant
@@ -73,12 +73,16 @@ The system SHALL expose REST endpoints under `/api/users` to create, read, updat
 - **THEN** the API updates the user, returns HTTP 200 with the updated user without the password hash, and refreshes `updatedAt`.
 
 #### Scenario: Updating a user outside the actor's scope
-- **WHEN** a user whose role is not `sysadmin` PUTs to `/api/users/:id` for a user outside the actor's own tenant
+- **WHEN** a user whose roles do not include `sysadmin` PUTs to `/api/users/:id` for a user outside the actor's own tenant
 - **THEN** the API responds with HTTP 403 and no user is modified.
 
 #### Scenario: Admin activating or deactivating a user of its tenant
 - **WHEN** an authenticated `admin` PUTs a payload changing the `status` of an existing user of the admin's own tenant to `/api/users/:id`
 - **THEN** the API updates the user status and responds with HTTP 200.
+
+#### Scenario: Assigning multiple roles when updating a user
+- **WHEN** an authorized actor updates a user providing a `roles` array with more than one value
+- **THEN** the API replaces the user's role set with exactly the provided roles.
 
 #### Scenario: Deleting a user
 - **WHEN** an authenticated `sysadmin` DELETEs `/api/users/:id` with an existing user id
@@ -119,11 +123,11 @@ The system SHALL support listing users with pagination via `page` and `limit` qu
 The system SHALL prevent tenant-scoped administrators from escalating privileges: an `admin` SHALL NOT assign or change the `sysadmin` role, SHALL NOT set a user's `tenantId` to a tenant other than the admin's own tenant, and SHALL NOT create, update, or delete users that belong to other tenants or that hold the `sysadmin` role.
 
 #### Scenario: Admin creating a sysadmin user
-- **WHEN** an authenticated `admin` POSTs a user payload with `role: sysadmin`
+- **WHEN** an authenticated `admin` POSTs a user payload with `roles` including `sysadmin`
 - **THEN** the API responds with HTTP 403 and no user is created.
 
 #### Scenario: Admin changing a user's role to sysadmin
-- **WHEN** an authenticated `admin` PUTs a payload setting `role: sysadmin` to `/api/users/:id` for a user of its tenant
+- **WHEN** an authenticated `admin` PUTs a payload setting `roles` to include `sysadmin` to `/api/users/:id` for a user of its tenant
 - **THEN** the API responds with HTTP 403 and no user is modified.
 
 #### Scenario: Admin moving a user to another tenant

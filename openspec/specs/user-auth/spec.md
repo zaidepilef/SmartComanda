@@ -2,20 +2,20 @@
 
 ## Purpose
 
-Provides JWT-based authentication for the SmartComanda user domain: login, registration, current-user retrieval, and route protection via a Bearer-token middleware.
+Provides JWT-based authentication for the SmartComanda user domain: login, registration, current-user retrieval, and route protection via a Bearer-token middleware. JWT tokens carry the user's `roles` as informational claims, while authorization is always evaluated against the fresh role set loaded from the PostgreSQL identity store on each request.
 
 ## Requirements
 
 ### Requirement: Login with email and password
-The system SHALL provide a login endpoint that verifies a user's email and password against the stored credentials and issues a signed JWT on success. The JWT SHALL include the user's `role` and `tenantId` (absent when the user has no tenant) as claims, so clients can build role- and tenant-aware interfaces without extra requests. Token claims SHALL be informational only: the API SHALL continue to authorize requests against the user record loaded from the database on every request, never against token claims.
+The system SHALL provide a login endpoint that verifies a user's email and password against the stored credentials and issues a signed JWT on success. The JWT SHALL include the user's `roles` (a non-empty array of role names) and `tenantId` (absent when the user has no tenant) as claims, so clients can build role- and tenant-aware interfaces without extra requests. Token claims SHALL be informational only: the API SHALL continue to authorize requests against the user record loaded from the database on every request, never against token claims.
 
 #### Scenario: Successful login
 - **WHEN** a client POSTs valid credentials (email + password) to the login endpoint
-- **THEN** the API responds with HTTP 200, a signed JWT access token carrying `role` and `tenantId` claims, its expiration time, and the public user profile without the password hash.
+- **THEN** the API responds with HTTP 200, a signed JWT access token carrying `roles` and `tenantId` claims, its expiration time, and the public user profile without the password hash.
 
 #### Scenario: Login token claims match the stored user
-- **WHEN** the API issues a JWT for a user with `role: admin` and a `tenantId`
-- **THEN** the token's `role` and `tenantId` claims match the stored user record, and the claims are used only for client-side convenience, never for authorization decisions.
+- **WHEN** the API issues a JWT for a user with `roles: ["admin"]` and a `tenantId`
+- **THEN** the token's `roles` and `tenantId` claims match the stored user record, and the claims are used only for client-side convenience, never for authorization decisions.
 
 #### Scenario: Wrong credentials
 - **WHEN** a client POSTs an unknown email or a wrong password to the login endpoint
@@ -103,3 +103,10 @@ The system SHALL configure the JWT signing secret and token expiration exclusive
 #### Scenario: Missing JWT secret
 - **WHEN** the backend starts without a `JWT_SECRET` configured
 - **THEN** the backend refuses to start and logs a clear error, rather than running with an insecure default secret.
+
+### Requirement: User record sourced from PostgreSQL on each request
+The system SHALL load the authenticated user from the PostgreSQL identity store on every authenticated request and SHALL resolve the user's roles from the `user_roles`/`roles` tables, evaluating authorization against the fresh role set rather than against token claims.
+
+#### Scenario: Authorizing from the fresh role set
+- **WHEN** an authenticated request carries a token whose stored roles no longer match the current database roles (e.g. a role was removed)
+- **THEN** the API authorizes the request using the current database role set.
