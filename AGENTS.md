@@ -34,24 +34,36 @@ Objetivos principales:
 - Integración con pagos digitales.
 - Administración mediante panel web.
 
-Arquitectura actual:
+---
 
+# Referencias a módulos (@)
 
-SmartComanda
+Cuando el usuario escriba una mención con `@` (p. ej. `@backend`), se refiere al repositorio/ubicación independiente de ESE módulo, NO al monorepo. Este patrón se aplicará a todos los módulos a medida que vayan separándose.
 
-├── frontend-admin
-│ └── Angular
-│
-├── backend
-│ └── Node.js API
-│
-├── postgres
-│ └── Base de datos PostgreSQL
-│
-├── openspec
-│ └── Especificaciones del sistema
-│
-└── docker-compose.yml
+Cada módulo tiene su propio repositorio dedicado:
+
+| Módulo | Repositorio | Ruta remota |
+|--------|-------------|-------------|
+| @backend | SmartComanda_api | `https://github.com/zaidepilef/SmartComanda_api.git` |
+| @frontend-admin | (pendiente de definir su repo) | — |
+| @postgres | (pendiente de definir su repo) | — |
+
+Reglas:
+
+- Al tocar código de un módulo `@X`, operar dentro de su repositorio dedicado (clonado en `/Users/ougt/Documents/GitHub/<Repo>`), no en el monorepo.
+- Commitear y empujar en el repo del módulo correspondiente.
+- El monorepo `SmartComanda` conserva `openspec/` (especificaciones) y `docker-compose.yml` (orquestación), que son transversales.
+- Los cambios de especificación (OpenSpec) viven en el monorepo; los cambios de código de un módulo viven en su repo.
+
+---
+
+Arquitectura/ubicaciones actuales:
+
+- `backend` → repo independiente `SmartComanda_api` (`/Users/ougt/Documents/GitHub/SmartComanda_api`), referido como `@backend`.
+- `frontend-admin` → Angular (aún en el monorepo).
+- `postgres` → PostgreSQL (aún en el monorepo).
+- `openspec` → especificaciones del sistema (monorepo).
+- `docker-compose.yml` → orquestación (monorepo).
 
 
 ---
@@ -131,8 +143,9 @@ Para nuevas funcionalidades:
 
 # Backend
 
-Ubicación:
-/backend
+Referencia: `@backend` = repo `SmartComanda_api`.
+
+Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_api`
 Tecnología:
 
 - Node.js.
@@ -141,6 +154,7 @@ Tecnología:
 
 Reglas:
 
+- Operar dentro del repo `SmartComanda_api` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_api`), NO en `/SmartComanda/backend`.
 - Mantener separación por capas.
 - No mezclar lógica de negocio con rutas.
 - Validar entradas.
