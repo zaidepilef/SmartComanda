@@ -45,7 +45,8 @@ Cada módulo tiene su propio repositorio dedicado:
 | Módulo | Repositorio | Ruta remota |
 |--------|-------------|-------------|
 | @backend | SmartComanda_api | `https://github.com/zaidepilef/SmartComanda_api.git` |
-| @frontend-admin | (pendiente de definir su repo) | — |
+| @frontend-admin | SmartComanda_admin | `https://github.com/zaidepilef/SmartComanda_admin.git` |
+| @frontend-pos | SmartComanda_pos | `https://github.com/zaidepilef/SmartComanda_pos.git` |
 | @postgres | (pendiente de definir su repo) | — |
 
 Reglas:
@@ -60,7 +61,8 @@ Reglas:
 Arquitectura/ubicaciones actuales:
 
 - `backend` → repo independiente `SmartComanda_api` (`/Users/ougt/Documents/GitHub/SmartComanda_api`), referido como `@backend`.
-- `frontend-admin` → Angular (aún en el monorepo).
+- `frontend-admin` → repo independiente `SmartComanda_admin` (`/Users/ougt/Documents/GitHub/SmartComanda_admin`), referido como `@frontend-admin`.
+- `frontend-pos` → repo independiente `SmartComanda_pos` (`/Users/ougt/Documents/GitHub/SmartComanda_pos`), referido como `@frontend-pos`.
 - `postgres` → PostgreSQL (aún en el monorepo).
 - `openspec` → especificaciones del sistema (monorepo).
 - `docker-compose.yml` → orquestación (monorepo).
@@ -176,14 +178,11 @@ src/
 
 ---
 
-# Frontend
+# Frontend Admin
 
-Ubicación:
+Referencia: `@frontend-admin` = repo `SmartComanda_admin`.
 
-
-/frontend
-
-
+Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_admin`
 Tecnología:
 
 - Angular.
@@ -192,6 +191,39 @@ Tecnología:
 
 Reglas:
 
+- Operar dentro del repo `SmartComanda_admin` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_admin`), NO en `/SmartComanda/frontend-admin`.
+- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_admin` para que se despliegue de forma independiente.
+- Usar componentes reutilizables.
+- Evitar lógica compleja en componentes.
+- Usar servicios para comunicación API.
+- Mantener tipado fuerte.
+- Aplicar buenas prácticas Angular.
+
+Preferir:
+
+- Standalone Components.
+- Signals cuando corresponda.
+- Lazy loading.
+- Guards.
+- Interceptors.
+
+---
+
+# Frontend POS
+
+Referencia: `@frontend-pos` = repo `SmartComanda_pos`.
+
+Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_pos`
+Tecnología:
+
+- Angular.
+- TypeScript.
+- SCSS.
+
+Reglas:
+
+- Operar dentro del repo `SmartComanda_pos` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_pos`), NO en `/SmartComanda/frontend-pos`.
+- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_pos` para que se despliegue de forma independiente.
 - Usar componentes reutilizables.
 - Evitar lógica compleja en componentes.
 - Usar servicios para comunicación API.
