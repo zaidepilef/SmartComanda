@@ -1,14 +1,4 @@
 :host {
-  --bg: #fff8f0;
-  --surface: #ffffff;
-  --ink: #241a12;
-  --muted: #8a7a66;
-  --accent: #e74c1e;
-  --accent-contrast: #ffffff;
-  --border: #f0e4d6;
-  --shadow: 0 6px 24px rgb(36 26 18 / 10%);
-  --radius: 14px;
-
   display: block;
   min-height: 100vh;
   background: var(--bg);
@@ -86,7 +76,7 @@ button:disabled {
 }
 
 .field-error {
-  color: #c0392b;
+  color: var(--error);
   font-size: 13px;
   margin: 0;
 }
@@ -98,8 +88,8 @@ button:disabled {
 
 .points-label {
   display: inline-block;
-  background: #fff3d6;
-  color: #8a5a00;
+  background: var(--badge-bg);
+  color: var(--badge-ink);
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 13px;
@@ -144,6 +134,7 @@ button:disabled {
   padding: 18px 12px;
   box-shadow: var(--shadow);
   text-align: center;
+  color: var(--ink);
 }
 
 .dish-icon {
@@ -193,7 +184,7 @@ button:disabled {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 45%);
+  background: var(--overlay);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -291,8 +282,8 @@ button:disabled {
   bottom: 16px;
   left: 16px;
   right: 16px;
-  background: #7f1d1d;
-  color: #fff;
+  background: var(--error-bg);
+  color: var(--error-ink);
   padding: 14px;
   border-radius: var(--radius);
   text-align: center;

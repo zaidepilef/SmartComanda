@@ -1,5 +1,6 @@
 @if (store.step() === 'phone') {
   <section class="screen phone-screen">
+    <app-theme-toggle />
     <h1>Bienvenido 👋</h1>
     <p class="subtitle">Dejanos tu WhatsApp para armar tu pedido</p>
 
@@ -27,6 +28,7 @@
 @if (store.step() === 'menu' && store.menu(); as menu) {
   <section class="screen menu-screen">
     <header class="menu-header">
+      <app-theme-toggle />
       <h1>{{ menu.tenancy.businessName }}</h1>
       <p class="subtitle">{{ menu.tenancy.branchName }}</p>
 

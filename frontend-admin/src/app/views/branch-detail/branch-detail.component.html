@@ -46,6 +46,8 @@
 
         @if (activeTab() === 'qr') {
           <div class="flex flex-col items-center gap-4 py-4 text-center">
+            <app-lan-url-toggle class="w-full max-w-md text-left" />
+
             <p class="max-w-md text-sm text-gray-600 dark:text-slate-300">
               Imprimí este código QR y dejalo en el local: el cliente lo escanea con su celular, deja su WhatsApp y arma su pedido para pagar en caja.
             </p>

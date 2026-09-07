@@ -1,11 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 import QRCode from 'qrcode';
 
-import { environment } from '../../../environments/environment';
 import { Branch, BranchService, PaymentMethod } from '../../services/branches.service';
+import { LanUrlService } from '../../services/lan-url.service';
+import { LanUrlToggleComponent } from '../../components/lan-url-toggle/lan-url-toggle.component';
 
 type DetailTab = 'config' | 'menu' | 'tables' | 'schedules' | 'settings' | 'qr';
 
@@ -31,13 +32,14 @@ const ALL_TABS: DetailTab[] = ['config', 'qr', 'menu', 'tables', 'schedules', 's
 
 @Component({
   selector: 'app-branch-detail',
-  imports: [FormsModule, RouterLink, NgClass],
+  imports: [FormsModule, RouterLink, NgClass, LanUrlToggleComponent],
   templateUrl: './branch-detail.component.html'
 })
 export class BranchDetailComponent implements OnInit {
   readonly #branchService = inject(BranchService);
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
+  readonly #lanUrl = inject(LanUrlService);
 
   readonly branch = signal<Branch | null>(null);
   readonly loading = signal(false);
@@ -55,6 +57,16 @@ export class BranchDetailComponent implements OnInit {
   readonly qrError = signal('');
 
   editing: Branch | null = null;
+
+  constructor() {
+    effect(() => {
+      this.#lanUrl.baseUrl();
+
+      if (this.activeTab() === 'qr' && this.branch()) {
+        void this.#loadQr();
+      }
+    });
+  }
 
   ngOnInit(): void {
     const id = this.#route.snapshot.paramMap.get('id');
@@ -116,7 +128,7 @@ export class BranchDetailComponent implements OnInit {
       return;
     }
 
-    const url = `${environment.publicUrl}/q/${branch.tenantId}/${branch._id}`;
+    const url = `${this.#lanUrl.baseUrl()}/q/${branch.tenantId}/${branch._id}`;
     this.qrUrl.set(url);
     this.qrError.set('');
 

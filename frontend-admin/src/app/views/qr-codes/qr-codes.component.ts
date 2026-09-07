@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import QRCode from 'qrcode';
 
-import { environment } from '../../../environments/environment';
+import { LanUrlService } from '../../services/lan-url.service';
 import { Branch, BranchService } from '../../services/branches.service';
 import { Tenant, TenantService } from '../../services/tenants.service';
+import { LanUrlToggleComponent } from '../../components/lan-url-toggle/lan-url-toggle.component';
 
 interface QrEntry {
   branch: Branch;
@@ -14,11 +15,13 @@ interface QrEntry {
 
 @Component({
   selector: 'app-qr-codes',
+  imports: [LanUrlToggleComponent],
   templateUrl: './qr-codes.component.html'
 })
 export class QrCodesComponent implements OnInit {
   readonly #branchService = inject(BranchService);
   readonly #tenantsService = inject(TenantService);
+  readonly #lanUrl = inject(LanUrlService);
 
   readonly loading = signal(true);
   readonly error = signal('');
@@ -26,12 +29,28 @@ export class QrCodesComponent implements OnInit {
   readonly copiedId = signal<string | null>(null);
   readonly printingId = signal<string | null>(null);
 
+  #loadedOnce = false;
+
+  constructor() {
+    effect(() => {
+      this.#lanUrl.baseUrl();
+
+      if (this.#loadedOnce) {
+        this.entries.set([]);
+        void this.#load();
+      }
+    });
+  }
+
   ngOnInit(): void {
     window.addEventListener('afterprint', () => this.printingId.set(null));
     void this.#load();
   }
 
   #load(): void {
+    this.loading.set(true);
+    this.error.set('');
+
     this.#tenantsService.list().subscribe({
       next: (tenants) => void this.#loadTenantQrs(tenants),
       error: () => {
@@ -54,12 +73,15 @@ export class QrCodesComponent implements OnInit {
         })
     );
 
-    Promise.all(tasks).then(() => this.loading.set(false));
+    Promise.all(tasks).then(() => {
+      this.loading.set(false);
+      this.#loadedOnce = true;
+    });
   }
 
   async #generateQrs(tenant: Tenant, branches: Branch[]): Promise<void> {
     for (const branch of branches) {
-      const url = `${environment.publicUrl}/q/${branch.tenantId}/${branch._id}`;
+      const url = `${this.#lanUrl.baseUrl()}/q/${branch.tenantId}/${branch._id}`;
 
       try {
         const dataUrl = await QRCode.toDataURL(url, { width: 300, margin: 1 });

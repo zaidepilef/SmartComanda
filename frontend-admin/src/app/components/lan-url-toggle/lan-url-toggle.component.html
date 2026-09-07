@@ -1,0 +1,46 @@
+<div
+  class="mb-4 rounded-xl border border-dashed border-amber-400 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30"
+>
+  <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+    <input
+      type="checkbox"
+      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:ring-offset-slate-900"
+      [checked]="enabled()"
+      (change)="toggle($event)"
+    />
+    QR de red local (dev)
+    <span
+      class="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900 dark:bg-amber-900 dark:text-amber-200"
+    >
+      solo desarrollo
+    </span>
+  </label>
+
+  @if (enabled()) {
+    <div class="mt-3 flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <label for="lan-ip" class="text-xs text-gray-600 dark:text-slate-300">IP del servidor:</label>
+        <input
+          id="lan-ip"
+          type="text"
+          inputmode="numeric"
+          class="w-56 rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+          [value]="ip() || detectedIp()"
+          placeholder="{{ detectedIp() || '192.168.1.10' }}"
+          (input)="onIpInput($event)"
+        />
+      </div>
+
+      <p class="text-xs text-gray-500 dark:text-slate-400">
+        Los QR se generarán con
+        <code class="font-mono">{{ baseUrl() }}</code>
+      </p>
+
+      @if (!ip().trim() && !detectedIp()) {
+        <p class="text-xs text-amber-700 dark:text-amber-300">
+          Ingresá la IP de esta máquina para que los QR funcionen en la red local.
+        </p>
+      }
+    </div>
+  }
+</div>

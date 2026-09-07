@@ -7,12 +7,13 @@ import { lastValueFrom } from 'rxjs';
 import { OrderStore } from '../../services/order-store.service';
 import { PublicApiService } from '../../services/public-api.service';
 import { CreateOrderResult, MenuDish } from '../../services/order-store.service';
+import { ThemeToggle } from '../../components/theme-toggle/theme-toggle';
 
 const PHONE_PATTERN = /^\+?[0-9]{9,15}$/;
 
 @Component({
   selector: 'app-order-flow',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ThemeToggle],
   templateUrl: './order-flow.html',
   styleUrl: './order-flow.scss',
 })
