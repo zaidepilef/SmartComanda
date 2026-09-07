@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/views/qr-landing/qr-landing.ts", "src/app/views/qr-landing/qr-landing.html"],
-  "sourcesContent": ["import { Component } from '@angular/core';\n\nimport { ThemeToggle } from '../../components/theme-toggle/theme-toggle';\n\n@Component({\n  selector: 'app-qr-landing',\n  imports: [ThemeToggle],\n  templateUrl: './qr-landing.html',\n  styleUrl: './qr-landing.scss',\n})\nexport class QrLandingView {}", "<app-theme-toggle />\n<h1>📱</h1>\n<h2>SmartComanda</h2>\n<p>Escaneá el código QR del local para armar tu pedido.</p>"],
-  "mappings": ";;;;;;;;;;;;;;;AAUM,IAAO,gBAAP,MAAO,eAAa;;qCAAb,gBAAa;EAAA;yEAAb,gBAAa,WAAA,CAAA,CAAA,gBAAA,CAAA,GAAA,OAAA,GAAA,MAAA,GAAA,UAAA,SAAA,uBAAA,IAAA,KAAA;AAAA,QAAA,KAAA,GAAA;ACV1B,MAAA,oBAAA,GAAA,kBAAA;AACA,MAAA,yBAAA,GAAA,IAAA;AAAI,MAAA,iBAAA,GAAA,WAAA;AAAE,MAAA,uBAAA;AACN,MAAA,yBAAA,GAAA,IAAA;AAAI,MAAA,iBAAA,GAAA,cAAA;AAAY,MAAA,uBAAA;AAChB,MAAA,yBAAA,GAAA,GAAA;AAAG,MAAA,iBAAA,GAAA,4DAAA;AAAoD,MAAA,uBAAA;;oBDG3C,WAAW,GAAA,QAAA,CAAA,2ZAAA,EAAA,CAAA;;;sEAIV,eAAa,CAAA;UANzB;uBACW,kBAAgB,SACjB,CAAC,WAAW,GAAC,UAAA,sIAAA,QAAA,CAAA,uYAAA,EAAA,CAAA;;;;6EAIX,eAAa,EAAA,WAAA,iBAAA,UAAA,0CAAA,YAAA,GAAA,CAAA;AAAA,GAAA;",
-  "names": []
-}

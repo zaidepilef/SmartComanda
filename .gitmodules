@@ -7,3 +7,6 @@
 [submodule "frontend-pos"]
 	path = frontend-pos
 	url = git@github.com:zaidepilef/SmartComanda_pos.git
+[submodule "frontend-client"]
+	path = frontend-client
+	url = git@github.com:zaidepilef/SmartComanda_client.git
