@@ -26,12 +26,15 @@ SmartComanda es una plataforma de automatización de pedidos para restaurantes.
 
 Objetivos principales:
 
+- Pedidos por QR Link
 - Gestión de pedidos.
+- App SPA SWA Angular para solicitar pedidos a Domicilio
+- Sistema Control de Delivery
 - Administración de productos.
 - Control operacional.
 - Integración futura con WhatsApp.
 - Automatización mediante n8n.
-- Integración con pagos digitales.
+- Integración con pagos digitales (Mercado Pago, KLAP, etc).
 - Administración mediante panel web.
 
 ---
