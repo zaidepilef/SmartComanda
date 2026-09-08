@@ -89,7 +89,7 @@ The system SHALL expose REST endpoints under `/api/users` to create, read, updat
 - **THEN** the API removes the user and responds with HTTP 204.
 
 #### Scenario: Deleting a user without sysadmin role
-- **WHEN** a user whose role is not `sysadmin` DELETEs `/api/users/:id`
+- **WHEN** a user whose roles do not include `sysadmin` DELETEs `/api/users/:id`
 - **THEN** the API responds with HTTP 403 and no user is removed.
 
 #### Scenario: Deleting a nonexistent user

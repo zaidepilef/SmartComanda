@@ -16,7 +16,9 @@ El cliente pide desde el celular, y tu negocio recibe el pedido al instante: ord
 ---
 
 ## ¿Qué problema resuelve?
-
+- **Pedir por QR** Pedidos se registran medianta la captura de un QR link a PWA para pedir ordenes desde casa u oficina
+- **Panel de Administracion de Comandas** Pedidos se ateinden en un KDS 
+- **Administra envios por Delivery** Envia a tus clientes y comnsales y dales seguimiento al pedidos, cotiza la factibilida y el cobro de envio
 - **Adiós a los pedidos por voz perdidos:** cada pedido queda registrado por escrito, sin malentendidos.
 - **El cliente pide cuando quiere:** sin llamadas, sin esperar que contestes.
 - **Menos errores:** el cliente ve el menú, elige y confirma. Nada se anota de memoria.
@@ -27,8 +29,8 @@ El cliente pide desde el celular, y tu negocio recibe el pedido al instante: ord
 
 ## ¿Cómo funciona para ti?
 
-1. Publicas tu menú con fotografías de tus platos.
-2. El cliente elige por WhatsApp.
+1. Publicas tu menú con fotografías de tus platos con le link de la palicacion de pedidos.
+2. El cliente toma su telefono captura el QR y navega por la App link PWA frontend-client y hace el pedido.
 3. El pedido llega a tu panel de control y lo ves con su estado.
 4. Preparas, confirmas y entregas. Simple.
 
@@ -42,6 +44,7 @@ El cliente pide desde el celular, y tu negocio recibe el pedido al instante: ord
 - **Control en tiempo real:** sabes siempre qué pedidos están en curso.
 - **Tu marca, tu estilo:** el sistema es parte de tu negocio, no una plataforma genérica.
 - **Sin depender de nadie:** tu información y tu menú son completamente tuyos.
+- **por que aveces UberEats es un pesimo negocio** controla tus envios con tus propios repartidores con comision o propinas
 
 ---
 

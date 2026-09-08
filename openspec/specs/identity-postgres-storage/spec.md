@@ -7,7 +7,7 @@ Establishes PostgreSQL as the persistence layer for SmartComanda's identity doma
 ## Requirements
 
 ### Requirement: PostgreSQL connection for identity
-The system SHALL connect to the PostgreSQL `smartcomanda` database using a connection string supplied via configuration, independent of the MongoDB connection. The connection SHALL be initialized before the API serves requests.
+The system SHALL connect to the PostgreSQL `smartcomanda_db` database using a connection string supplied via configuration, independent of the MongoDB connection. The connection SHALL be initialized before the API serves requests.
 
 #### Scenario: Connecting to PostgreSQL on startup
 - **WHEN** the backend starts with a valid database connection string
@@ -18,21 +18,21 @@ The system SHALL connect to the PostgreSQL `smartcomanda` database using a conne
 - **THEN** the backend logs an error and exits without serving requests.
 
 ### Requirement: Identity tables in PostgreSQL
-The system SHALL define the identity schema in `smartcomanda` with the following tables: `tenant`, `users`, `roles`, and `user_roles`. Each `tenant` and `users` row SHALL carry a stable identity id that preserves the source MongoDB object id, so references from other modules remain valid.
+The system SHALL define the identity schema in `smartcomanda_db` with the following tables: `tenant`, `users`, `roles`, and `user_roles`. Each `tenant` and `users` row SHALL carry a stable identity id that preserves the source MongoDB object id as a UUID, so references from other modules remain valid.
 
 #### Scenario: Identity tables exist after migration
 - **WHEN** versioned SQL migrations have run on an empty database
 - **THEN** the `tenant`, `users`, `roles`, and `user_roles` tables exist with the documented columns.
 
-#### Scenario: Preserving source ids
+#### Scenario: Preserving source ids as UUIDs
 - **WHEN** identity data is imported from MongoDB
-- **THEN** each tenant and user keeps its original MongoDB object id in the primary id column.
+- **THEN** each tenant and user keeps its original MongoDB object id stored as a UUID in the primary id column.
 
 ### Requirement: Versioned SQL migrations run on startup
 The system SHALL apply versioned PostgreSQL migrations at backend startup, in version order, tracking applied ones, and SHALL stop startup if a migration fails.
 
 #### Scenario: Applying pending SQL migrations
-- **WHEN** the backend starts and `smartcomanda` contains unapplied migrations
+- **WHEN** the backend starts and `smartcomanda_db` contains unapplied migrations
 - **THEN** those migrations are applied in version order before the API serves requests.
 
 #### Scenario: Not re-running applied SQL migrations
@@ -44,7 +44,7 @@ The system SHALL apply versioned PostgreSQL migrations at backend startup, in ve
 - **THEN** the backend logs the error and exits without serving requests.
 
 ### Requirement: One-time import of identity data from MongoDB
-The system SHALL provide a one-time data import that copies existing `tenant`, `users`, and role assignments from MongoDB into the PostgreSQL identity tables, preserving each source object id, and SHALL be idempotent so re-running it does not duplicate data.
+The system SHALL provide a one-time data import that copies existing `tenant`, `users`, and role assignments from MongoDB into the PostgreSQL identity tables, preserving each source object id as a UUID, and SHALL be idempotent so re-running it does not duplicate data.
 
 #### Scenario: Importing existing identity data
 - **WHEN** the import runs against a MongoDB instance containing tenants and users
