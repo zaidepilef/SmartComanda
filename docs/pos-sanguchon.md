@@ -1190,7 +1190,7 @@ Angular
       ↓
 SmartComanda API
       ↓
-MongoDB
+PostgreSQL
       ↓
 KDS Cocina
       ↓

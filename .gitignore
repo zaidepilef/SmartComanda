@@ -7,7 +7,9 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
-# Backups
+# Backups (PostgreSQL dumps may contain real data)
+backups/*.dump
+backups/*.partial
 postman/
 
 # System files

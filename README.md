@@ -30,7 +30,7 @@ El cliente pide desde el celular, y tu negocio recibe el pedido al instante: ord
 ## ¿Cómo funciona para ti?
 
 1. Publicas tu menú con fotografías de tus platos con le link de la palicacion de pedidos.
-2. El cliente toma su telefono captura el QR y navega por la App link PWA frontend-client y hace el pedido.
+2. El cliente toma su telefono captura el QR y navega por la App link PWA (SmartComanda_client) y hace el pedido.
 3. El pedido llega a tu panel de control y lo ves con su estado.
 4. Preparas, confirmas y entregas. Simple.
 
@@ -80,9 +80,6 @@ Todo se configura desde `.env` en la raíz del proyecto (la plantilla está en `
 | `JWT_EXPIRES_IN` | No | Expiración de tokens (default `1h`) |
 | `N8N_EMAIL` / `N8N_PASSWORD` | Sí | Credenciales de n8n |
 | `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` | Sí | Credenciales de pgAdmin |
-| `MONGODB_URI` | No | URI de MongoDB de la app (default `mongodb://localhost:27017/smartcomanda`). Cambia a Atlas sin tocar código |
-| `MONGODB_PORT` | No | Puerto host de MongoDB (default `27017`) |
-| `ATLAS_MONGODB_URI` | No | URI de Atlas **solo para los scripts de backup/restore** — la app nunca la lee |
 | `TURNSTILE_SECRET_KEY` | No | Clave secreta Cloudflare Turnstile (registro con verificación) |
 
 ### Registro con verificación (Turnstile)
@@ -90,7 +87,7 @@ Todo se configura desde `.env` en la raíz del proyecto (la plantilla está en `
 El registro público usa Cloudflare Turnstile ("no soy un robot") y deja la cuenta en estado `pending` hasta que un usuario del panel la apruebe.
 
 - **Backend** (`.env` raíz): `TURNSTILE_SECRET_KEY` — clave secreta del sitio Turnstile.
-- **Frontend** (`frontend-admin/src/environments/`): `turnstileSiteKey` — clave pública del sitio (`.ts` de desarrollo y producción).
+- **Frontend** (`SmartComanda_admin/src/environments/`): `turnstileSiteKey` — clave pública del sitio (`.ts` de desarrollo y producción).
 
 Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separado en el dashboard de Cloudflare para `localhost` y para cada dominio de producción. Para desarrollo local se puede usar la clave de prueba oficial que siempre acepta: site `1x00000000000000000000AA` y secret `1x0000000000000000000000000000000AA`.
 
@@ -100,10 +97,11 @@ Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separa
 
 | Servicio | URL | Descripción |
 |---|---|---|
-| Panel de administración | http://localhost:4200 | Frontend Angular (frontend-admin) |
+| Panel de administración | http://localhost:4200 | Frontend Angular (`SmartComanda_admin`) |
+| POS | http://localhost:4201 | Punto de venta Angular (`SmartComanda_pos`) |
+| App de pedidos (PWA) | http://localhost:4202 | App del cliente vía QR (`SmartComanda_client`) |
 | API | http://localhost:3000 | Backend Node.js/Express (`GET /health` para estado) |
-| PostgreSQL | localhost:5432 | Base de datos principal (Postgres) |
-| MongoDB | localhost:27017 | Base de datos de negocio (MongoDB, solo localhost) |
+| PostgreSQL | localhost:5432 | Única base de datos de la aplicación |
 | pgAdmin | http://localhost:8080 | Administrador visual de PostgreSQL |
 | n8n | http://localhost:5678 | Automatizaciones/Workflows |
 
@@ -120,7 +118,12 @@ Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separa
 
 ## Setup local
 
-1. Clonar el repositorio.
+1. Clonar el repositorio con sus submódulos:
+
+   ```bash
+   git clone --recurse-submodules git@github.com:zaidepilef/SmartComanda.git
+   ```
+
 2. Crear el `.env` desde la plantilla y completar los valores:
 
    ```bash
@@ -154,80 +157,28 @@ docker compose down                   # detener todo (los volúmenes persisten)
 Para correr el backend fuera de Docker (desarrollo rápido con hot-reload):
 
 ```bash
-cd backend
+cd SmartComanda_api
 npm install
 npm run dev
 ```
 
 ---
 
-## MongoDB
+## Base de datos
 
-MongoDB corre en el contenedor `smartcomanda_mongodb` (imagen oficial `mongo:8`, puerto `27017` solo accesible desde localhost).
+Toda la persistencia vive en **PostgreSQL** (contenedor `smartcomanda_postgres`). El esquema se crea con migraciones versionadas en `SmartComanda_api/src/migrations-pg/`, que la API aplica automáticamente al arrancar.
 
-### Conexión con MongoDB Compass
+### Backup y restore
 
-- **Local:** `mongodb://localhost:27017/smartcomanda`
-- **Atlas (remoto):** `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<db>` — el cluster debe tener tu IP habilitada en *Network Access*.
-
-### Cambiar entre local y Atlas (solo configuración)
-
-La app usa una única variable `MONGODB_URI`. Para apuntar a Atlas, cambiarla en `.env` y reiniciar el contenedor `api`:
+Los dumps se generan con `pg_dump` (formato custom) en la carpeta `backups/` de la raíz. Hay alias npm en `SmartComanda_api/`:
 
 ```bash
-# .env
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/smartcomanda
+npm run db:backup                     # crea backups/<POSTGRES_DB>-<timestamp>.dump
+npm run db:restore                    # restaura el dump más reciente
+npm run db:restore -- <archivo>       # restaura un dump específico (ruta relativa a backups/)
 ```
 
-```bash
-docker compose up -d --build api
-```
-
-### Setup de MongoDB Atlas (primer uso)
-
-1. Crear un **cluster free** (M0) en https://www.mongodb.com/atlas.
-2. Crear un **database user** con contraseña (guardar las credenciales fuera del repositorio).
-3. En **Network Access**, agregar tu IP (o `0.0.0.0/0` solo para desarrollo; **nunca** en producción).
-4. Copiar la cadena de conexión y ponerla en `ATLAS_MONGODB_URI` (para backups) o `MONGODB_URI` (para que la app la use). Nunca comitear credenciales reales.
-
----
-
-## Backups de MongoDB
-
-Los backups se generan con `mongodump`/`mongorestore` (herramientas oficiales) hacia la carpeta `backups/` de la raíz del proyecto (montada como `/backups` dentro del contenedor, gitignored). Todos los comandos tienen alias npm en `backend/` (`npm run db:*`).
-
-### Lifecycle
-
-```bash
-npm run db:up        # iniciar el servicio mongodb
-npm run db:down      # detener el servicio mongodb (los datos persisten)
-npm run db:status    # estado del contenedor, healthcheck y ping de conectividad
-```
-
-### Backup y restore LOCAL
-
-```bash
-npm run db:backup:local                    # crea backups/smartcomanda-local-<timestamp>.archive
-npm run db:restore:local                   # restaura el archive local más reciente
-npm run db:restore:local -- <archivo>      # restaura un archive específico (ruta relativa a backups/)
-```
-
-### Backup y restore ATLAS
-
-Requiere `ATLAS_MONGODB_URI` en el `.env` raíz (las credenciales nunca se guardan en el repositorio; el URI solo lo usan los scripts, nunca la app).
-
-```bash
-npm run db:backup:atlas                    # crea backups/smartcomanda-atlas-<timestamp>.archive
-npm run db:restore:atlas                   # restaura el archive Atlas más reciente
-npm run db:restore:atlas -- <archivo>      # restaura un archive específico
-```
-
-### DESTRUCTIVO — leer antes de restaurar
-
-- **Restaurar sobreescribe los datos existentes**: el restore hace `--drop` (elimina las colecciones antes de restaurar). No se puede deshacer.
-- Todos los restores piden confirmación explícita (escribir `yes`). Para uso no interactivo: `--yes`/`--force`.
-- **Se recomienda hacer un backup justo antes de cualquier restore.**
-- **Esto NO es sincronización ni replicación**: es un proceso manual de una sola vía (LOCAL ⇄ archive ⇄ ATLAS). No existe sync automático bidireccional.
+**DESTRUCTIVO:** el restore usa `pg_restore --clean`, que elimina los objetos existentes antes de restaurar. Pide confirmación (escribir `yes`); para uso no interactivo: `--yes`/`--force`. Haz un backup justo antes de cualquier restore.
 
 ---
 

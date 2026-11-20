@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared helpers for SmartComanda MongoDB scripts.
+# Shared helpers for SmartComanda PostgreSQL scripts.
 
 set -euo pipefail
 
@@ -8,8 +8,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT"
 
-MONGODB_CONTAINER="smartcomanda_mongodb"
-DB_NAME="${DB_NAME:-smartcomanda}"
 BACKUP_DIR="$REPO_ROOT/backups"
 
 # Load .env safely (only KEY=VALUE lines, no shell evaluation).
