@@ -35,17 +35,6 @@ The system SHALL apply branch schema changes as versioned PostgreSQL migrations 
 - **WHEN** the backend starts and the branches migration is already applied
 - **THEN** the migration is not re-executed.
 
-### Requirement: One-time import of branch data from MongoDB
-The system SHALL provide a one-time data import that copies existing branches from MongoDB into the PostgreSQL `branches` table, preserving each source object id, and SHALL be idempotent so re-running it does not duplicate data.
-
-#### Scenario: Importing existing branches
-- **WHEN** the import runs against a MongoDB instance containing branches
-- **THEN** matching rows are created in the PostgreSQL `branches` table with unchanged ids and the same tenant references.
-
-#### Scenario: Re-running the import is safe
-- **WHEN** the import runs a second time over already-imported data
-- **THEN** no duplicate branch rows are created.
-
 ### Requirement: Atomic branch order counter
 The system SHALL expose an atomic increment of a branch's `nextOrderNumber` so that concurrent requests for the same branch observe strictly increasing, non-repeating order numbers, preserving the behavior previously provided by MongoDB's atomic compare-and-increment.
 

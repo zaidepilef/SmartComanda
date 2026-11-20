@@ -43,17 +43,6 @@ The system SHALL apply versioned PostgreSQL migrations at backend startup, in ve
 - **WHEN** a SQL migration fails during startup
 - **THEN** the backend logs the error and exits without serving requests.
 
-### Requirement: One-time import of identity data from MongoDB
-The system SHALL provide a one-time data import that copies existing `tenant`, `users`, and role assignments from MongoDB into the PostgreSQL identity tables, preserving each source object id as a UUID, and SHALL be idempotent so re-running it does not duplicate data.
-
-#### Scenario: Importing existing identity data
-- **WHEN** the import runs against a MongoDB instance containing tenants and users
-- **THEN** matching rows are created in the PostgreSQL identity tables with unchanged ids and hashed passwords intact.
-
-#### Scenario: Re-running the import is safe
-- **WHEN** the import runs a second time over already-imported data
-- **THEN** no duplicate identity rows are created.
-
 ### Requirement: Role assignments in PostgreSQL
 The system SHALL persist role names in a `roles` table and assign zero or more roles to each user through the `user_roles` table, supporting a many-to-many relationship where a user can hold multiple roles and a role can apply to many users.
 
