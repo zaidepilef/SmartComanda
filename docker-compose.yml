@@ -88,40 +88,6 @@ services:
 
 
 
-  n8n:
-    image: n8nio/n8n
-    container_name: smartcomanda_n8n
-    restart: unless-stopped
-
-    ports:
-      - "5678:5678"
-
-    environment:
-      DB_TYPE: postgresdb
-      DB_POSTGRESDB_HOST: postgres
-      DB_POSTGRESDB_PORT: 5432
-      DB_POSTGRESDB_DATABASE: n8n_db
-      DB_POSTGRESDB_USER: admin
-      DB_POSTGRESDB_PASSWORD: admin123
-
-      N8N_HOST: smartcomanda_n8n
-      N8N_PORT: 5678
-      WEBHOOK_URL: http://localhost:5678/
-
-      GENERIC_TIMEZONE: America/Santiago
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    volumes:
-      - smartcomanda_n8n_data:/home/node/.n8n
-
-    networks:
-      - smartcomanda_network
-
-
-
   angular_admin:
     build:
       context: ./SmartComanda_admin
@@ -137,7 +103,8 @@ services:
       CHOKIDAR_INTERVAL: "1000"
 
     env_file:
-      - ./SmartComanda_admin/.env
+      - path: ./SmartComanda_admin/.env
+        required: false
 
     ports:
       - "4200:4200"
@@ -170,7 +137,8 @@ services:
       CHOKIDAR_INTERVAL: "1000"
 
     env_file:
-      - ./SmartComanda_pos/.env
+      - path: ./SmartComanda_pos/.env
+        required: false
 
     ports:
       - "4201:4201"
@@ -203,7 +171,8 @@ services:
       CHOKIDAR_INTERVAL: "1000"
 
     env_file:
-      - ./SmartComanda_client/.env
+      - path: ./SmartComanda_client/.env
+        required: false
 
     ports:
       - "4202:4202"
@@ -233,9 +202,6 @@ volumes:
 
   smartcomanda_pgadmin_data:
     name: smartcomanda_pgadmin_data
-
-  smartcomanda_n8n_data:
-    name: smartcomanda_n8n_data
 
   smartcomanda_backend_node_modules:
     name: smartcomanda_backend_node_modules

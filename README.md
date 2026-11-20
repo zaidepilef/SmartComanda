@@ -78,7 +78,6 @@ Todo se configura desde `.env` en la raíz del proyecto (la plantilla está en `
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Sí | Credenciales de PostgreSQL |
 | `JWT_SECRET` | Sí | Firma de tokens JWT, mínimo 32 caracteres (`openssl rand -base64 48`) |
 | `JWT_EXPIRES_IN` | No | Expiración de tokens (default `1h`) |
-| `N8N_EMAIL` / `N8N_PASSWORD` | Sí | Credenciales de n8n |
 | `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` | Sí | Credenciales de pgAdmin |
 | `TURNSTILE_SECRET_KEY` | No | Clave secreta Cloudflare Turnstile (registro con verificación) |
 
@@ -103,7 +102,6 @@ Las claves Turnstile son **por dominio**: hay que crear un sitio (widget) separa
 | API | http://localhost:3000 | Backend Node.js/Express (`GET /health` para estado) |
 | PostgreSQL | localhost:5432 | Única base de datos de la aplicación |
 | pgAdmin | http://localhost:8080 | Administrador visual de PostgreSQL |
-| n8n | http://localhost:5678 | Automatizaciones/Workflows |
 
 ---
 
