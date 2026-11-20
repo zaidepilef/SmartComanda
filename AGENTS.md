@@ -40,33 +40,24 @@ Objetivos principales:
 
 Cuando el usuario escriba una mención con `@` (p. ej. `@backend`), se refiere al repositorio/ubicación independiente de ESE módulo, NO al monorepo. Este patrón se aplicará a todos los módulos a medida que vayan separándose.
 
-Cada módulo tiene su propio repositorio dedicado:
+Cada módulo tiene su propio repositorio dedicado, incluido en este workspace como submódulo git:
 
-| Módulo | Repositorio | Ruta remota |
-|--------|-------------|-------------|
-| @backend | SmartComanda_api | `https://github.com/zaidepilef/SmartComanda_api.git` |
-| @frontend-admin | SmartComanda_admin | `https://github.com/zaidepilef/SmartComanda_admin.git` |
-| @frontend-pos | SmartComanda_pos | `https://github.com/zaidepilef/SmartComanda_pos.git` |
-| @postgres | (pendiente de definir su repo) | — |
+| Módulo | Carpeta (submódulo) | Repositorio remoto |
+|--------|---------------------|--------------------|
+| @backend | `SmartComanda_api/` | `git@github.com:zaidepilef/SmartComanda_api.git` |
+| @frontend-admin | `SmartComanda_admin/` | `git@github.com:zaidepilef/SmartComanda_admin.git` |
+| @frontend-pos | `SmartComanda_pos/` | `git@github.com:zaidepilef/SmartComanda_pos.git` |
+| @frontend-client | `SmartComanda_client/` | `git@github.com:zaidepilef/SmartComanda_client.git` |
+| @postgres | `postgres/` (monorepo) | — |
+
+Workspace: `/Users/ougt/Sources/SmartComanda`. No existen otras copias de estos repos.
 
 Reglas:
 
-- Al tocar código de un módulo `@X`, operar dentro de su repositorio dedicado (clonado en `/Users/ougt/Documents/GitHub/<Repo>`), no en el monorepo.
-- Commitear y empujar en el repo del módulo correspondiente.
-- El monorepo `SmartComanda` conserva `openspec/` (especificaciones) y `docker-compose.yml` (orquestación), que son transversales.
+- Al tocar código de un módulo `@X`, trabajar dentro de su carpeta de submódulo (p. ej. `SmartComanda_api/`).
+- Commitear y empujar primero en el repo del módulo; después actualizar el puntero del submódulo en el monorepo.
+- El monorepo `SmartComanda` conserva `openspec/` (especificaciones), `docker-compose.yml` (orquestación), `postgres/` y `scripts/`, que son transversales.
 - Los cambios de especificación (OpenSpec) viven en el monorepo; los cambios de código de un módulo viven en su repo.
-
----
-
-Arquitectura/ubicaciones actuales:
-
-- `backend` → repo independiente `SmartComanda_api` (`/Users/ougt/Documents/GitHub/SmartComanda_api`), referido como `@backend`.
-- `frontend-admin` → repo independiente `SmartComanda_admin` (`/Users/ougt/Documents/GitHub/SmartComanda_admin`), referido como `@frontend-admin`.
-- `frontend-pos` → repo independiente `SmartComanda_pos` (`/Users/ougt/Documents/GitHub/SmartComanda_pos`), referido como `@frontend-pos`.
-- `postgres` → PostgreSQL (aún en el monorepo).
-- `openspec` → especificaciones del sistema (monorepo).
-- `docker-compose.yml` → orquestación (monorepo).
-
 
 ---
 
@@ -147,7 +138,7 @@ Para nuevas funcionalidades:
 
 Referencia: `@backend` = repo `SmartComanda_api`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_api`
+Ubicación: `SmartComanda_api/` (submódulo del workspace)
 Tecnología:
 
 - Node.js.
@@ -156,7 +147,7 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_api` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_api`), NO en `/SmartComanda/backend`.
+- Operar dentro de la carpeta `SmartComanda_api/` del workspace (es el repo `SmartComanda_api`).
 - Mantener separación por capas.
 - No mezclar lógica de negocio con rutas.
 - Validar entradas.
@@ -182,7 +173,7 @@ src/
 
 Referencia: `@frontend-admin` = repo `SmartComanda_admin`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_admin`
+Ubicación: `SmartComanda_admin/` (submódulo del workspace)
 Tecnología:
 
 - Angular.
@@ -191,8 +182,8 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_admin` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_admin`), NO en `/SmartComanda/frontend-admin`.
-- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_admin` para que se despliegue de forma independiente.
+- Operar dentro de la carpeta `SmartComanda_admin/` del workspace (es el repo `SmartComanda_admin`).
+- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitean y empujan en el repo `SmartComanda_admin` para que se despliegue de forma independiente.
 - Usar componentes reutilizables.
 - Evitar lógica compleja en componentes.
 - Usar servicios para comunicación API.
@@ -213,7 +204,7 @@ Preferir:
 
 Referencia: `@frontend-pos` = repo `SmartComanda_pos`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_pos`
+Ubicación: `SmartComanda_pos/` (submódulo del workspace)
 Tecnología:
 
 - Angular.
@@ -222,8 +213,8 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_pos` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_pos`), NO en `/SmartComanda/frontend-pos`.
-- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_pos` para que se despliegue de forma independiente.
+- Operar dentro de la carpeta `SmartComanda_pos/` del workspace (es el repo `SmartComanda_pos`).
+- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitean y empujan en el repo `SmartComanda_pos` para que se despliegue de forma independiente.
 - Usar componentes reutilizables.
 - Evitar lógica compleja en componentes.
 - Usar servicios para comunicación API.

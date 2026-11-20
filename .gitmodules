@@ -1,12 +1,12 @@
 [submodule "backend"]
-	path = backend
+	path = SmartComanda_api
 	url = git@github.com:zaidepilef/SmartComanda_api.git
 [submodule "frontend-admin"]
-	path = frontend-admin
+	path = SmartComanda_admin
 	url = git@github.com:zaidepilef/SmartComanda_admin.git
 [submodule "frontend-pos"]
-	path = frontend-pos
+	path = SmartComanda_pos
 	url = git@github.com:zaidepilef/SmartComanda_pos.git
 [submodule "frontend-client"]
-	path = frontend-client
+	path = SmartComanda_client
 	url = git@github.com:zaidepilef/SmartComanda_client.git
