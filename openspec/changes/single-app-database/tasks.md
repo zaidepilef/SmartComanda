@@ -1,7 +1,7 @@
 ## 1. Configuration
 
 - [x] 1.1 Set `POSTGRES_DB=smartcomanda` in `.env.example`; verify `grep -rn restaurant_saas .env.example` returns nothing
-- [ ] 1.2 Point `@backend` `env.example` `DATABASE_URL` to `smartcomanda`; commit and push in `SmartComanda_api`, then bump the submodule pointer
+- [x] 1.2 Point `@backend` `env.example` `DATABASE_URL` to `smartcomanda`; commit and push in `SmartComanda_api`, then bump the submodule pointer
 - [x] 1.3 Create only `smartcomanda` in `postgres/init.sql` and `postgres/init.d/00_core_databases.sql`; verify `grep -rn restaurant_saas postgres/` returns nothing
 
 ## 2. Local environment
