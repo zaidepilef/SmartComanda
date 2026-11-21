@@ -10,7 +10,6 @@ yarn-error.log
 # Backups (PostgreSQL dumps may contain real data)
 backups/*.dump
 backups/*.partial
-postman/
 
 # System files
 .DS_Store
