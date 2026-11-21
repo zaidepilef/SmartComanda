@@ -1,12 +1,12 @@
 # postgres-only-persistence Specification
 
 ## Purpose
-Defines PostgreSQL as SmartComanda's only datastore: no MongoDB runtime, dependency or service, a stable 24-hex id format, and safe `pg_dump`/`pg_restore` backup and restore tooling.
+Defines PostgreSQL as SmartComanda's only datastore: a single application database (`smartcomanda`), no MongoDB runtime, dependency or service, a stable 24-hex id format, and safe `pg_dump`/`pg_restore` backup and restore tooling.
 
 ## Requirements
 
 ### Requirement: PostgreSQL as the single datastore
-The system SHALL persist all application data in PostgreSQL and SHALL NOT depend on MongoDB at runtime, in its dependencies, or in its orchestration.
+The system SHALL persist all application data in PostgreSQL and SHALL NOT depend on MongoDB at runtime, in its dependencies, or in its orchestration. All application data SHALL live in a single PostgreSQL database named `smartcomanda`; database bootstrap, environment templates and the API configuration SHALL all reference that same database, and bootstrap SHALL NOT create any other application database.
 
 #### Scenario: No MongoDB dependency in the API
 - **WHEN** the backend dependencies and sources are inspected
@@ -15,6 +15,14 @@ The system SHALL persist all application data in PostgreSQL and SHALL NOT depend
 #### Scenario: No MongoDB service in orchestration
 - **WHEN** a developer runs `docker compose up -d`
 - **THEN** no MongoDB container is started and the API starts with only PostgreSQL available.
+
+#### Scenario: Environment template targets the application database
+- **WHEN** a developer creates `.env` from `.env.example` and starts the stack
+- **THEN** the API connects to the `smartcomanda` database.
+
+#### Scenario: Bootstrap creates only the application database
+- **WHEN** PostgreSQL starts and runs its bootstrap scripts
+- **THEN** the `smartcomanda` database exists and no other application database is created.
 
 ### Requirement: Stable 24-hex identifiers
 The system SHALL generate entity ids as 24-character hexadecimal strings (4-byte timestamp followed by 8 random bytes) without a MongoDB library, so ids created before and after the removal share one format and existing validation keeps accepting them.
