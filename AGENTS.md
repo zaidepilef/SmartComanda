@@ -336,6 +336,36 @@ No modificar archivos no relacionados.
 
 ---
 
+# Estrategia de ramas (Git Flow)
+
+`release` es **producción**: Dokploy (VPS Hostinger) despliega cada aplicación desde la rama `release` de su propio repositorio. Nunca se trabaja ni se commitea directamente en `release` ni en `main`.
+
+Flujo de las ramas, en cada submódulo (`@backend`, `@frontend-admin`, `@frontend-pos`, `@frontend-client`):
+
+```
+feature/* · fix/* · refactor/*  →  develop  →  main  →  release
+        (trabajo)               (integración) (estable) (producción)
+```
+
+| Rama | Rol | Cómo recibe cambios |
+|------|-----|---------------------|
+| `feature/*`, `fix/*`, `refactor/*` | Trabajo de cada cambio | Commits directos |
+| `develop` | Integración para desarrollo | PR desde las ramas de trabajo |
+| `main` | Rama estable, ya revisada | PR desde `develop` |
+| `release` | **Producción** (la despliega Dokploy) | PR desde `main`, solo al liberar |
+
+Reglas:
+
+- Commitear y pushear SOLO en `develop` o en ramas de trabajo (`feature/*`, `fix/*`, `refactor/*`), tanto en el monorepo como en cada submódulo.
+- `main` y `release` solo reciben cambios por PR con **"Create a merge commit"** (no squash ni rebase), para que los punteros de submódulo del monorepo no queden huérfanos.
+- Liberar a producción = PR de `main` a `release` en el repo del módulo. Dokploy redespliega esa aplicación al detectar el cambio en `release`.
+- Nunca hacer force-push a `main` ni a `release`.
+- Antes de iniciar trabajo, comprobar y actualizar la rama correcta en el repositorio correspondiente (`git status` / `git branch`).
+- Los submódulos llevan su propia rama; no asumir que estar en una rama del monorepo implica estar en la misma dentro de cada submódulo.
+- El monorepo no tiene rama `release`: no se despliega; solo guarda especificaciones, orquestación local y punteros de submódulo.
+
+---
+
 # Comunicación del agente
 
 Cuando realices cambios debes indicar:
