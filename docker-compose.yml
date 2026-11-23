@@ -61,6 +61,7 @@ services:
   api:
     build:
       context: ./SmartComanda_api
+      target: dev
 
     container_name: smartcomanda_api
     restart: unless-stopped
