@@ -385,17 +385,22 @@ No modificar archivos no relacionados.
 
 # Estrategia de ramas (Git Flow)
 
-`main` es **producción** y está desplegada en un VPS; nunca se trabaja ni se commitea directamente en `main`.
+`release` es **producción**: Dokploy (VPS) despliega automáticamente la rama `release` de cada submodule (`@backend`, `@frontend-admin`, `@frontend-pos`, `@frontend-client`) en cada push. Nunca se trabaja ni se commitea directamente en `release` ni en `main`.
 
-Todo el desarrollo (monorepo **y** submodulos) ocurre en ramas distintas de `main`:
+Ramas:
 
 - `develop` → rama de integración por defecto para desarrollo.
+- `release` → producción (la que despliega Dokploy).
+- `main` → rama estable; registra lo liberado, pero **no se despliega**.
 - Otras ramas `feature/*`, `fix/*`, `refactor/*` cuando el cambio lo amerite.
+
+El monorepo `SmartComanda` no tiene rama `release` ni se despliega: lo liberado se registra en su `main` (especificaciones y punteros de submodules).
 
 Reglas:
 
-- Crear/commitar/pushear SOLO en `develop` (u otra rama distinta de `main`) tanto en el monorepo `SmartComanda` como en cada submodule (`@backend`, `@frontend-admin`, `@frontend-pos`, `@frontend-client`).
-- `main` solo recibe cambios cuando se libera a producción (merge/PR desde `develop`).
+- Crear/commitar/pushear SOLO en `develop` (u otra rama de trabajo) tanto en el monorepo `SmartComanda` como en cada submodule.
+- Liberar a producción = PR `develop` → `release` en cada submodule. Primero `@backend` (sus migraciones corren al arrancar la API) y, cuando esté desplegada, los frontends.
+- Después de liberar, actualizar `main` (PR `develop` → `main`) en los submodules y en el monorepo.
 - Antes de iniciar trabajo, comprobar y actualizar la rama correcta en el repositorio correspondiente (`git status` / `git branch`).
 - Los submodules llevan su propia rama; no asumir que estar en `develop` del monorepo implica estar en `develop` dentro de cada submodule.
 
