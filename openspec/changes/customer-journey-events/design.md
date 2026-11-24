@@ -20,7 +20,8 @@ El flujo QR (`@frontend-client`) es una SPA sin autenticación que llama a `/api
    *Alternativas:* servicio externo de analítica (saca datos del cliente fuera de la plataforma y añade dependencia) o MongoDB (el proyecto está migrando a solo PostgreSQL).
 2. **Sesión generada en el cliente** (`crypto.randomUUID()` en `sessionStorage`), enviada en el header `X-Journey-Session` también en `POST /api/public/orders`, para que el servidor vincule su propio evento a la sesión.
 3. **Envío en lote**: el cliente acumula eventos y los envía cada pocos segundos o al cambiar de etapa, y con `navigator.sendBeacon` al ocultarse la página. Fallos de envío se descartan en silencio (máx. un reintento) para no afectar el pedido.
-4. **Eventos de servidor para el resultado del pedido**: `createPublicOrder` y el middleware de validación registran `order_created` / `order_failed` con `source = server`. Es la fuente confiable; el evento del cliente se conserva para detectar fallos de red que nunca llegan a la API.
+4. **Eventos de servidor para el resultado del pedido**: un middleware (`trackOrderOutcome`) colocado antes de la validación de `POST /api/public/orders` registra `order_created` / `order_failed` con `source = server` al terminar la respuesta, incluidos los rechazos 400. Es la única fuente de `order_created`; el cliente solo envía `order_failed` cuando no obtiene respuesta HTTP (error de red, `status: 0`), así no se duplican eventos.
+   *Alternativa:* registrar dentro de `createPublicOrder` (no ve los rechazos de validación, que ocurren antes).
 5. **Identidad por referencia**: al recibir `identity_submitted` el backend resuelve o crea el `customer` por teléfono y guarda solo `customer_id`; el nombre y teléfono se muestran en el admin vía join con `customers`.
 6. **Etapa derivada al consultar** (no almacenada): el endpoint de sesiones agrega por `session_id` y calcula la etapa con las reglas del spec. Evita inconsistencias y no requiere actualizar filas.
 7. **Endpoints de consulta autenticados** bajo `/api/branches/:branchId/journey/` (`sessions`, `sessions/:sessionId`, `funnel`), con los mismos guards de rol y tenant que las vistas de sucursal.
@@ -30,6 +31,8 @@ El flujo QR (`@frontend-client`) es una SPA sin autenticación que llama a `/api
 
 - [Endpoint público abusable para llenar la tabla] → validación estricta de tipos, tamaño de lote (máx. 50) y de `data` (máx. 2 KB), sucursal activa obligatoria y `publicRateLimit`.
 - [Rate limit en memoria no se comparte entre réplicas] → aceptable con una réplica; se revisará si se escala.
+- [Clientes del mismo local comparten IP (Wi-Fi)] → la ingesta usa su propio límite (1200 peticiones / 15 min por IP), separado del de pedidos y menú.
+- [sendBeacon entre dominios no admite `application/json` sin preflight] → el endpoint acepta también `text/plain` y lo interpreta como JSON.
 - [Eventos del cliente pueden perderse (cierre abrupto, bloqueadores)] → el resultado del pedido siempre lo registra el servidor.
 - [Crecimiento de la tabla] → índices por sucursal/fecha y retención de 90 días.
 

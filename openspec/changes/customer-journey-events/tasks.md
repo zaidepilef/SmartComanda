@@ -1,20 +1,20 @@
 ## 1. Backend: almacenamiento e ingesta (@backend)
 
-- [ ] 1.1 Migración PG: tabla `customer_journey_events` con índices por sucursal/fecha y por sesión
-- [ ] 1.2 Repositorio de eventos (insertar lote, consultar sesiones, línea de tiempo, embudo)
-- [ ] 1.3 Esquema zod de lote de eventos (tipos permitidos, máx. 50 eventos, `data` máx. 2 KB)
-- [ ] 1.4 `POST /api/public/events` con `publicRateLimit`, validación de sucursal activa y resolución de `customer_id` en `identity_submitted`
-- [ ] 1.5 Leer `X-Journey-Session` en `POST /api/public/orders` y registrar `order_created` / `order_failed` (incluye rechazos de validación) con `source = server`
-- [ ] 1.6 Job diario de retención (90 días)
-- [ ] 1.7 Tests de ingesta, rechazo de lotes inválidos y eventos de servidor
+- [x] 1.1 Migración PG: tabla `customer_journey_events` con índices por sucursal/fecha y por sesión
+- [x] 1.2 Repositorio de eventos (insertar lote, consultar sesiones, línea de tiempo, embudo)
+- [x] 1.3 Esquema zod de lote de eventos (tipos permitidos, máx. 50 eventos, `data` máx. 2 KB)
+- [x] 1.4 `POST /api/public/events` con `publicRateLimit`, validación de sucursal activa y resolución de `customer_id` en `identity_submitted`
+- [x] 1.5 Leer `X-Journey-Session` en `POST /api/public/orders` y registrar `order_created` / `order_failed` (incluye rechazos de validación) con `source = server`
+- [x] 1.6 Job diario de retención (90 días)
+- [x] 1.7 Tests de ingesta, rechazo de lotes inválidos y eventos de servidor
 
 ## 2. Backend: consultas para el admin (@backend)
 
-- [ ] 2.1 `GET /api/branches/:branchId/journey/sessions` con filtro de fechas y etapa derivada
-- [ ] 2.2 `GET /api/branches/:branchId/journey/sessions/:sessionId` (línea de tiempo)
-- [ ] 2.3 `GET /api/branches/:branchId/journey/funnel`
-- [ ] 2.4 Guards de rol (`admin`, `owner`) y aislamiento por tenant; tests de acceso cruzado
-- [ ] 2.5 Documentar endpoints en la documentación de la API
+- [x] 2.1 `GET /api/branches/:branchId/journey/sessions` con filtro de fechas y etapa derivada
+- [x] 2.2 `GET /api/branches/:branchId/journey/sessions/:sessionId` (línea de tiempo)
+- [x] 2.3 `GET /api/branches/:branchId/journey/funnel`
+- [x] 2.4 Guards de rol (`admin`, `owner`) y aislamiento por tenant; tests de acceso cruzado
+- [x] 2.5 Documentar endpoints en la documentación de la API
 
 ## 3. Client: emisión de eventos (@frontend-client)
 
