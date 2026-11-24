@@ -18,20 +18,20 @@
 
 ## 3. Client: emisión de eventos (@frontend-client)
 
-- [ ] 3.1 Servicio `JourneyService`: id de sesión en `sessionStorage`, cola, envío en lote y `sendBeacon` al ocultar la página
-- [ ] 3.2 Emitir eventos desde el flujo (QR abierto, menú, identidad, carrito, envío, resultado) y nueva sesión tras "Hacer otro pedido"
-- [ ] 3.3 Enviar `X-Journey-Session` en `createOrder`
-- [ ] 3.4 Garantizar que fallos de tracking no afecten el pedido (tests)
+- [x] 3.1 Servicio `JourneyService`: id de sesión en `sessionStorage`, cola, envío en lote y `sendBeacon` al ocultar la página
+- [x] 3.2 Emitir eventos desde el flujo (QR abierto, menú, identidad, carrito, envío, resultado) y nueva sesión tras "Hacer otro pedido"
+- [x] 3.3 Enviar `X-Journey-Session` en `createOrder`
+- [ ] 3.4 Garantizar que fallos de tracking no afecten el pedido (tests) — implementado (errores capturados, sin bloquear); falta test automatizado: el client no tiene runner de tests configurado
 
 ## 4. Admin: visualizador (@frontend-admin)
 
-- [ ] 4.1 Servicio API de journey y modelos tipados
-- [ ] 4.2 Vista "Eventos de clientes": selector de sucursal y fechas, lista de sesiones con etapa y refresco periódico
-- [ ] 4.3 Panel de línea de tiempo de la sesión
-- [ ] 4.4 Embudo de conversión
-- [ ] 4.5 Ruta lazy, guard de rol y entrada en el menú
+- [x] 4.1 Servicio API de journey y modelos tipados
+- [x] 4.2 Vista "Eventos de clientes": selector de sucursal y fechas, lista de sesiones con etapa y refresco periódico
+- [x] 4.3 Panel de línea de tiempo de la sesión
+- [x] 4.4 Embudo de conversión
+- [x] 4.5 Ruta lazy, guard de rol y entrada en el menú
 
 ## 5. Validación
 
-- [ ] 5.1 Prueba end-to-end local: pedido exitoso, pedido fallido y abandono visibles en el admin
-- [ ] 5.2 `openspec validate customer-journey-events --strict`
+- [x] 5.1 Prueba end-to-end local: pedido exitoso, pedido fallido y abandono visibles en el admin
+- [x] 5.2 `openspec validate customer-journey-events --strict`
