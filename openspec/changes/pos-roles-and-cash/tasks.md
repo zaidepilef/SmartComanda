@@ -38,5 +38,9 @@
 
 - [x] 6.1 `docker exec smartcomanda_api npm test` en verde
 - [x] 6.2 Probar en el POS: cerrar la caja abierta desde septiembre y abrir una nueva
-- [ ] 6.3 Probar en el POS el flujo QR con usuarios Cajero y Cocinero reales (probado con owner: pedido QR → Por cobrar → cobro → cocina)
+- [x] 6.3 Probar en el POS el flujo QR con usuarios Cajero y Cocinero reales (pedido #9: Cajero cobró, Cocinero despachó)
 - [x] 6.4 Probar en el POS anular un pedido cobrado con Encargado y revisar los totales de caja
+
+## 7. Quién cobró
+
+- [x] 7.1 Migración `015_add_paid_by_to_orders.js`, `paidBy`/`paidByName` en la API y "Cobró …" en el listado de pedidos del admin

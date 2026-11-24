@@ -16,7 +16,7 @@ The system SHALL allow `cashier`, `owner`, `admin`, and `sysadmin` users to crea
 - **THEN** the system responds with HTTP 403 and nothing is created or charged
 
 ### Requirement: Order payment requires an open cash session
-The system SHALL reject charging an order — either a create with `paymentMethod` or charging a `pending` order — for a branch that has no open cash session. When an order is charged the system SHALL, in a single transaction, mark it `paid`, record the cash session it was charged in and the time of payment, and increase that session's total for the payment method by the order total and its order count by one.
+The system SHALL reject charging an order — either a create with `paymentMethod` or charging a `pending` order — for a branch that has no open cash session. When an order is charged the system SHALL, in a single transaction, mark it `paid`, record the cash session it was charged in, the time of payment, and the user who charged it, and increase that session's total for the payment method by the order total and its order count by one.
 
 #### Scenario: Rejecting payment without an open session
 - **WHEN** an order is charged for a branch without an open cash session
@@ -29,6 +29,10 @@ The system SHALL reject charging an order — either a create with `paymentMetho
 #### Scenario: Order remembers its cash session
 - **WHEN** an order is charged
 - **THEN** the order stores the id of the open cash session and the payment timestamp
+
+#### Scenario: Order records who charged it
+- **WHEN** a `cashier` charges an order
+- **THEN** the order stores that user as the payer, and reading or listing the order returns the payer's name
 
 ## ADDED Requirements
 
