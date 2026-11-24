@@ -24,7 +24,7 @@
 
 ## Decisions
 
-1. **Matriz de permisos en código, por acción.** `backend/src/auth/permissions.js` exporta `PERMISSIONS = { 'order.create': [...roles], 'order.cancel': [...], ... }` y un middleware `requirePermission(action)`. Las rutas declaran la acción, no la lista de roles. *Alternativa descartada*: tabla de permisos en la base; agrega complejidad sin necesidad actual.
+1. **Matriz de permisos en código, por acción.** `backend/src/utils/permissions.js` (con `middleware/requirePermission.js`) exporta `PERMISSIONS = { 'order.create': [...roles], 'order.cancel': [...], ... }` y un middleware `requirePermission(action)`. Las rutas declaran la acción, no la lista de roles. *Alternativa descartada*: tabla de permisos en la base; agrega complejidad sin necesidad actual.
 2. **Rol `cook` por migración.** `014_pos_roles_and_cash.js` inserta el rol 5 `cook`/"Cocinero" (idempotente) y renombra el visible de `admin` a "Encargado". El código del rol `admin` no cambia, así que no hay migración de usuarios. POS y admin usan un mapa `ROLE_LABELS` compartido por app para mostrar el nombre.
 3. **Quién asigna qué rol.** `ASSIGNABLE_ROLES = { sysadmin: todos, owner: [admin, cashier, cook], admin: [cashier, cook] }` en `userService`; reemplaza el chequeo puntual de `ADMIN`. `requireSysadminOrAdmin` pasa a `requirePermission('user.manage')`, que incluye `owner`.
 4. **Pedidos guardan su caja.** La misma migración agrega a `orders`: `cash_session_id`, `paid_at`, `cancel_reason`, `cancelled_by`, `cancelled_at`, `corrected_by`, `corrected_at`; y `payment_status` admite `refunded`. Cobrar y anular corren en una transacción (`BEGIN … COMMIT` con `SELECT … FOR UPDATE` sobre el pedido y la caja).
@@ -40,6 +40,8 @@
 - **BREAKING para cajeros que hoy cancelan.** → Se comunica: anular pasa a Encargado o superior.
 - **Superposición con la rama local `fix/user-role-update` del admin (Sources)** en auth y usuarios. → La parte admin se implementa después de integrar o descartar esa rama; se pregunta antes de tocarla.
 - **Cajas abiertas viejas en producción** quedarían con arqueo vacío. → Se cierran con el flujo nuevo; las cerradas antes de la migración no tienen filas de arqueo y la UI lo muestra como "sin arqueo".
+- **Puntos de fidelidad**: anular un pedido cobrado no revierte los puntos que ganó el cliente. → Pendiente para un cambio de `loyalty-points`.
+- **Pedidos cobrados antes de la migración** no tienen `cash_session_id`: anularlos responde 409 (no se sabe en qué caja revertir).
 - **Concurrencia al cobrar dos veces el mismo QR desde dos cajas.** → `FOR UPDATE` y la condición `payment_status = 'pending'` en el `UPDATE`.
 
 ## Migration Plan

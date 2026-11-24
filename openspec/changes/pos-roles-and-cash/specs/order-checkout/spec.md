@@ -67,7 +67,7 @@ The system SHALL allow only `admin`, `owner`, and `sysadmin` users to cancel an 
 - **THEN** the system responds with HTTP 403 and the order keeps its status
 
 ### Requirement: Correct a pending order
-The system SHALL allow only `admin`, `owner`, and `sysadmin` users to replace the items (dish and quantity, with optional note) of an order of their tenant whose payment is `pending` and whose status is `new`. The system SHALL re-resolve prices server-side, recompute the total, keep the order number, and record who corrected it and when. Correcting an order that is `paid`, `cancelled`, or no longer `new` SHALL be rejected with HTTP 409. Corrected items SHALL NOT deduct stock.
+The system SHALL allow only `admin`, `owner`, and `sysadmin` users to replace the items (dish and quantity) of an order of their tenant whose payment is `pending` and whose status is `new`. The system SHALL re-resolve prices server-side, recompute the total, keep the order number, and record who corrected it and when. Correcting an order that is `paid`, `cancelled`, or no longer `new` SHALL be rejected with HTTP 409. Corrected items SHALL NOT deduct stock.
 
 #### Scenario: Correcting a QR order before charging
 - **WHEN** an `admin` changes a `pending` QR order from 2 to 1 "Hotdog Clásico" and adds 1 "Papas Fritas"
