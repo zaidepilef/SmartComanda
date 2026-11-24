@@ -26,12 +26,15 @@ SmartComanda es una plataforma de automatización de pedidos para restaurantes.
 
 Objetivos principales:
 
+- Pedidos por QR Link
 - Gestión de pedidos.
+- App SPA SWA Angular para solicitar pedidos a Domicilio
+- Sistema Control de Delivery
 - Administración de productos.
 - Control operacional.
 - Integración futura con WhatsApp.
 - Automatización mediante n8n.
-- Integración con pagos digitales.
+- Integración con pagos digitales (Mercado Pago, KLAP, etc).
 - Administración mediante panel web.
 
 ---
@@ -47,6 +50,7 @@ Cada módulo tiene su propio repositorio dedicado:
 | @backend | SmartComanda_api | `https://github.com/zaidepilef/SmartComanda_api.git` |
 | @frontend-admin | SmartComanda_admin | `https://github.com/zaidepilef/SmartComanda_admin.git` |
 | @frontend-pos | SmartComanda_pos | `https://github.com/zaidepilef/SmartComanda_pos.git` |
+| @frontend-client | SmartComanda_client | `https://github.com/zaidepilef/SmartComanda_client.git` |
 | @postgres | (pendiente de definir su repo) | — |
 
 Reglas:
@@ -60,12 +64,15 @@ Reglas:
 
 Arquitectura/ubicaciones actuales:
 
-- `backend` → repo independiente `SmartComanda_api` (`/Users/ougt/Documents/GitHub/SmartComanda_api`), referido como `@backend`.
-- `frontend-admin` → repo independiente `SmartComanda_admin` (`/Users/ougt/Documents/GitHub/SmartComanda_admin`), referido como `@frontend-admin`.
-- `frontend-pos` → repo independiente `SmartComanda_pos` (`/Users/ougt/Documents/GitHub/SmartComanda_pos`), referido como `@frontend-pos`.
+- `backend` → repo independiente `SmartComanda_api` (submodule en `/home/ougt/Sources/SmartComanda/backend`), referido como `@backend`.
+- `frontend-admin` → repo independiente `SmartComanda_admin` (submodule en `/home/ougt/Sources/SmartComanda/frontend-admin`), referido como `@frontend-admin`.
+- `frontend-pos` → repo independiente `SmartComanda_pos` (submodule en `/home/ougt/Sources/SmartComanda/frontend-pos`), referido como `@frontend-pos`.
+- `frontend-client` → repo independiente `SmartComanda_client` (submodule en `/home/ougt/Sources/SmartComanda/frontend-client`), referido como `@frontend-client`.
 - `postgres` → PostgreSQL (aún en el monorepo).
 - `openspec` → especificaciones del sistema (monorepo).
 - `docker-compose.yml` → orquestación (monorepo).
+
+Los módulos `@backend`, `@frontend-admin`, `@frontend-pos` y `@frontend-client` están integrados como **submodules** de git dentro del monorepo `SmartComanda` (`/home/ougt/Sources/SmartComanda`). Cada submodule es un repositorio git independiente con su propio historial y remoto; los cambios se commitearán y empujarán DENTRO del submodule correspondiente.
 
 
 ---
@@ -147,7 +154,7 @@ Para nuevas funcionalidades:
 
 Referencia: `@backend` = repo `SmartComanda_api`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_api`
+Ubicación: `/home/ougt/Sources/SmartComanda/backend`
 Tecnología:
 
 - Node.js.
@@ -156,7 +163,7 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_api` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_api`), NO en `/SmartComanda/backend`.
+- Operar dentro del submodule `SmartComanda_api` (`/home/ougt/Sources/SmartComanda/backend`), NO en otra ubicación.
 - Mantener separación por capas.
 - No mezclar lógica de negocio con rutas.
 - Validar entradas.
@@ -182,7 +189,7 @@ src/
 
 Referencia: `@frontend-admin` = repo `SmartComanda_admin`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_admin`
+Ubicación: `/home/ougt/Sources/SmartComanda/frontend-admin`
 Tecnología:
 
 - Angular.
@@ -191,7 +198,7 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_admin` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_admin`), NO en `/SmartComanda/frontend-admin`.
+- Operar dentro del submodule `SmartComanda_admin` (`/home/ougt/Sources/SmartComanda/frontend-admin`), NO en otra ubicación.
 - Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_admin` para que se despliegue de forma independiente.
 - Usar componentes reutilizables.
 - Evitar lógica compleja en componentes.
@@ -213,7 +220,7 @@ Preferir:
 
 Referencia: `@frontend-pos` = repo `SmartComanda_pos`.
 
-Ubicación: `/Users/ougt/Documents/GitHub/SmartComanda_pos`
+Ubicación: `/home/ougt/Sources/SmartComanda/frontend-pos`
 Tecnología:
 
 - Angular.
@@ -222,8 +229,39 @@ Tecnología:
 
 Reglas:
 
-- Operar dentro del repo `SmartComanda_pos` (clonado en `/Users/ougt/Documents/GitHub/SmartComanda_pos`), NO en `/SmartComanda/frontend-pos`.
+- Operar dentro del submodule `SmartComanda_pos` (`/home/ougt/Sources/SmartComanda/frontend-pos`), NO en otra ubicación.
 - Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_pos` para que se despliegue de forma independiente.
+- Usar componentes reutilizables.
+- Evitar lógica compleja en componentes.
+- Usar servicios para comunicación API.
+- Mantener tipado fuerte.
+- Aplicar buenas prácticas Angular.
+
+Preferir:
+
+- Standalone Components.
+- Signals cuando corresponda.
+- Lazy loading.
+- Guards.
+- Interceptors.
+
+---
+
+# Frontend Client
+
+Referencia: `@frontend-client` = repo `SmartComanda_client`.
+
+Ubicación: `/home/ougt/Sources/SmartComanda/frontend-client`
+Tecnología:
+
+- Angular.
+- TypeScript.
+- SCSS.
+
+Reglas:
+
+- Operar dentro del submodule `SmartComanda_client` (`/home/ougt/Sources/SmartComanda/frontend-client`), NO en otra ubicación.
+- Localmente se levanta y prueba con Docker (orquestado desde el monorepo), pero los cambios de código se commitearán y empujarán SOLO en el repo `SmartComanda_client` para que se despliegue de forma independiente.
 - Usar componentes reutilizables.
 - Evitar lógica compleja en componentes.
 - Usar servicios para comunicación API.
@@ -342,6 +380,24 @@ refactor: improve product service
 
 
 No modificar archivos no relacionados.
+
+---
+
+# Estrategia de ramas (Git Flow)
+
+`main` es **producción** y está desplegada en un VPS; nunca se trabaja ni se commitea directamente en `main`.
+
+Todo el desarrollo (monorepo **y** submodulos) ocurre en ramas distintas de `main`:
+
+- `develop` → rama de integración por defecto para desarrollo.
+- Otras ramas `feature/*`, `fix/*`, `refactor/*` cuando el cambio lo amerite.
+
+Reglas:
+
+- Crear/commitar/pushear SOLO en `develop` (u otra rama distinta de `main`) tanto en el monorepo `SmartComanda` como en cada submodule (`@backend`, `@frontend-admin`, `@frontend-pos`, `@frontend-client`).
+- `main` solo recibe cambios cuando se libera a producción (merge/PR desde `develop`).
+- Antes de iniciar trabajo, comprobar y actualizar la rama correcta en el repositorio correspondiente (`git status` / `git branch`).
+- Los submodules llevan su propia rama; no asumir que estar en `develop` del monorepo implica estar en `develop` dentro de cada submodule.
 
 ---
 
