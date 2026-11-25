@@ -38,7 +38,7 @@
 - [x] 2.10 Pago contra entrega explícito en domicilio: "Pagas al recibir tu pedido", sin transferencia, botón "Confirmar pedido · pagas $X al recibir"
 - [x] 2.11 Pantalla de seguimiento `/pedido/:number` con línea de tiempo, indicador "Por pagar $X (al recibir / en caja)" o "Pagado ✓", consulta cada 15 s y fin al llegar a un estado final; motivo cuando el local rechaza
 - [x] 2.12 Comprobante del pedido activo en localStorage por tenant/sucursal (`number`, `trackingToken`, `phone`, `mode`); al recargar o volver a escanear el QR se abre directo el seguimiento; al llegar a un estado final o con token desconocido se borra y se ofrece "Hacer otro pedido"
-- [ ] 2.13 Eventos de journey para los pasos nuevos (sin datos personales)
+- [x] 2.13 Eventos de journey para los pasos nuevos (sin datos personales): `mode_selected`, `customer_looked_up`, `address_confirmed`, `address_out_of_range`, `summary_opened`; etiquetas en el visor del admin
 
 ## 3. POS (`@frontend-pos`)
 
