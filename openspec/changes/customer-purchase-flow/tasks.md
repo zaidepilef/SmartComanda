@@ -58,9 +58,9 @@
 
 ## 5. Verificación
 
-- [ ] 5.1 Tests del backend en verde; builds de cliente, POS y admin
-- [ ] 5.2 Retiro de punta a punta: teléfono nuevo → nombre → retiro → menú → resumen → pedido → cola QR → cobro → cocina → listo → entregado
-- [ ] 5.3 Domicilio de punta a punta con cliente conocido: saludo → dirección sugerida → pedido → cocina sin cobro → listo → repartidor → cobro en efectivo con vuelto → entregado y pagado
-- [ ] 5.4 Seguimiento: el cliente ve cada cambio de estado y de pago de su pedido, sigue en el seguimiento al recargar o reescanear, ve el motivo cuando el local lo rechaza; un token inventado no devuelve nada
-- [ ] 5.5 Casos límite: fuera de cobertura, doble confirmación, tarjeta rechazada y luego efectivo, caja cerrada al entregar, repartidor ajeno, teléfono inválido
-- [ ] 5.6 Revisar en el celular (modo emulado) teclado numérico, GPS denegado y marcador manual
+- [x] 5.1 Tests del backend en verde; builds de cliente, POS y admin (86/86)
+- [x] 5.2 Retiro de punta a punta: teléfono nuevo → nombre → retiro → menú → resumen → pedido → cola QR → cobro → cocina → listo → entregado
+- [x] 5.3 Domicilio de punta a punta con cliente conocido: saludo → dirección sugerida → pedido → cocina sin cobro → listo → repartidor → cobro en efectivo con vuelto → entregado y pagado (despachó el Encargado; el ingreso al POS con un usuario Repartidor queda por probar en la UI, sus reglas están cubiertas por tests)
+- [x] 5.4 Seguimiento: el cliente ve cada cambio de estado y de pago de su pedido, sigue en el seguimiento al recargar o reescanear, ve el motivo cuando el local lo rechaza; un token inventado no devuelve nada
+- [x] 5.5 Casos límite: fuera de cobertura, doble confirmación, tarjeta rechazada y luego efectivo, caja cerrada al entregar, repartidor ajeno, teléfono inválido (caja cerrada y repartidor ajeno verificados por tests del backend)
+- [x] 5.6 Revisar en el celular (modo emulado) teclado numérico, GPS denegado y marcador manual
