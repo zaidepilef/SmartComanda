@@ -1,0 +1,58 @@
+## 0. Prerrequisitos
+
+- [ ] 0.1 Verificar y archivar `pos-roles-and-cash`, `customer-identity-orders` y `delivery-location-estimate` (tareas manuales pendientes en los dos últimos)
+- [ ] 0.2 Confirmar `develop` actualizado en monorepo, `@backend`, `@frontend-client`, `@frontend-pos` y `@frontend-admin`
+
+## 1. Backend (`@backend`)
+
+- [ ] 1.1 Migración `018_create_customer_addresses.js` (tabla, FK a `customers`, índice `(customer_id, last_used_at DESC)`)
+- [ ] 1.2 Migración `019_purchase_flow_orders.js`: `expected_payment_method`, `cash_tendered`, `client_request_id` + índice único parcial, `driver_id`, `customer_address_id`, `payment_history`, índice de reparto
+- [ ] 1.3 Migración `020_add_driver_role.js` (rol `driver`, "Repartidor")
+- [ ] 1.4 Migración `021_normalize_customer_phones.js` con reporte de choques, sin fusionar
+- [ ] 1.5 `utils/phone.js`: normalizar/validar `+569XXXXXXXX`, con tests; usarlo en `publicSchemas`
+- [ ] 1.6 `models/order.js`: estado `out_for_delivery`, transiciones por modalidad, estados de pago y sus transiciones, `isAppPickupOrder` / `isAppDeliveryOrder`
+- [ ] 1.7 `orderService.updateOrderStatus` y filtro `kitchen`: solo `qr` pendiente espera el cobro; domicilio entra con pago pendiente
+- [ ] 1.8 `payment_history` en cobro, rechazo y anulación; anular sin cobro → `voided`
+- [ ] 1.9 `permissions.js`: `order.dispatch`, `order.collect`, rol `driver`; listado acotado a domicilios para `driver`
+- [ ] 1.10 Endpoints de reparto: tomar pedido (bloqueo optimista), asignar/reasignar, `POST /orders/:id/deliver` (transacción con caja y puntos), `POST /orders/:id/payment-rejected`
+- [ ] 1.11 `customerRepository`/`customerService`: direcciones guardadas (reutilizar por texto o < 30 m, máximo 5), primer nombre, actualización de nombre
+- [ ] 1.12 `POST /api/public/customers/lookup` con etiquetas enmascaradas y rate limit propio por IP y por teléfono
+- [ ] 1.13 `createPublicOrder`: `clientRequestId` idempotente, `expectedPaymentMethod`/`cashTendered` validados contra la sucursal, `note` por ítem, `addressId`, cobertura obligatoria (422)
+- [ ] 1.14 Menú público con `paymentMethods` y `deliveryAvailable`
+- [ ] 1.15 Swagger y tests (servicio, repositorio y rutas) para todo lo anterior
+
+## 2. Cliente (`@frontend-client`)
+
+- [ ] 2.1 Reestructurar `order-flow` en pasos con navegación hacia atrás que conserva el carrito
+- [ ] 2.2 Paso teléfono: prefijo fijo `+569`, `inputmode="numeric"`, 8 dígitos, solo números
+- [ ] 2.3 Paso bienvenida/nombre con lookup, "¡Qué rico volver a verte, {nombre}!" y "¿No eres tú?"
+- [ ] 2.4 Paso modalidad según `deliveryAvailable`
+- [ ] 2.5 Paso dirección: sugerir la última, listar las guardadas, nueva con GPS o marcador manual; bloqueo fuera de cobertura con opción de retiro
+- [ ] 2.6 Nota por ítem en el detalle del producto y en el carrito
+- [ ] 2.7 Resumen con total, medio de pago esperado según modalidad y sucursal, "pago con" y vuelto, aviso de que elegir no es pagar
+- [ ] 2.8 `clientRequestId` por confirmación, botón deshabilitado durante el envío y reintento seguro
+- [ ] 2.9 Confirmación distinta para retiro y domicilio; manejo de los errores 422/409
+- [ ] 2.10 Eventos de journey para los pasos nuevos (sin datos personales)
+
+## 3. POS (`@frontend-pos`)
+
+- [ ] 3.1 Etiquetas de estado por modalidad y estado de pago (servicio compartido)
+- [ ] 3.2 Cocina: domicilios con pago pendiente visibles con el distintivo "Paga al recibir"; ocultar `out_for_delivery`; mostrar notas
+- [ ] 3.3 Cola QR: preseleccionar el medio de pago esperado
+- [ ] 3.4 Pantalla "Reparto": listos / en reparto, datos de entrega, llamar, mapa, total, vuelto, salir a reparto, aviso de caja cerrada
+- [ ] 3.5 Cobro con entrega (efectivo con monto recibido, débito, crédito) y registro de cobro rechazado
+- [ ] 3.6 Menú y rutas para `driver` (solo Reparto); asignación por Encargado
+
+## 4. Admin (`@frontend-admin`)
+
+- [ ] 4.1 Rol "Repartidor" en el alta y la edición de usuarios
+- [ ] 4.2 Detalle y listado de pedidos: estado `out_for_delivery`, estados de pago nuevos, medio esperado, repartidor, historial de pagos
+- [ ] 4.3 Filtros por los estados nuevos
+
+## 5. Verificación
+
+- [ ] 5.1 Tests del backend en verde; builds de cliente, POS y admin
+- [ ] 5.2 Retiro de punta a punta: teléfono nuevo → nombre → retiro → menú → resumen → pedido → cola QR → cobro → cocina → listo → entregado
+- [ ] 5.3 Domicilio de punta a punta con cliente conocido: saludo → dirección sugerida → pedido → cocina sin cobro → listo → repartidor → cobro en efectivo con vuelto → entregado y pagado
+- [ ] 5.4 Casos límite: fuera de cobertura, doble confirmación, tarjeta rechazada y luego efectivo, caja cerrada al entregar, repartidor ajeno, teléfono inválido
+- [ ] 5.5 Revisar en el celular (modo emulado) teclado numérico, GPS denegado y marcador manual
