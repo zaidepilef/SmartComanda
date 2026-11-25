@@ -26,18 +26,18 @@
 
 ## 2. Cliente (`@frontend-client`)
 
-- [ ] 2.1 Reestructurar `order-flow` en pasos con navegación hacia atrás que conserva el carrito
-- [ ] 2.2 Paso modalidad como primera pantalla, según `deliveryAvailable`
-- [ ] 2.3 Paso teléfono: prefijo fijo `+569`, `inputmode="numeric"`, 8 dígitos, solo números
-- [ ] 2.4 Paso bienvenida/nombre con lookup, "¡Qué rico volver a verte, {nombre}!" y "¿No eres tú?"
-- [ ] 2.5 Paso dirección: sugerir la última, listar las guardadas, nueva con GPS o marcador manual; bloqueo fuera de cobertura con opción de retiro
-- [ ] 2.6 Nota por ítem en el detalle del producto y en el carrito
-- [ ] 2.7 Resumen con total, medio de pago esperado según modalidad y sucursal, "pago con" y vuelto, aviso de que elegir no es pagar
-- [ ] 2.8 `clientRequestId` por confirmación, botón deshabilitado durante el envío y reintento seguro
-- [ ] 2.9 Confirmación distinta para retiro y domicilio; manejo de los errores 422/409
-- [ ] 2.10 Pago contra entrega explícito en domicilio: "Pagas al recibir tu pedido", sin transferencia, botón "Confirmar pedido · pagas $X al recibir"
-- [ ] 2.11 Pantalla de seguimiento `/pedido/:number` con línea de tiempo, indicador "Por pagar $X (al recibir / en caja)" o "Pagado ✓", consulta cada 15 s y fin al llegar a un estado final; motivo cuando el local rechaza
-- [ ] 2.12 Comprobante del pedido activo en localStorage por tenant/sucursal (`number`, `trackingToken`, `phone`, `mode`); al recargar o volver a escanear el QR se abre directo el seguimiento; al llegar a un estado final o con token desconocido se borra y se ofrece "Hacer otro pedido"
+- [x] 2.1 Reestructurar `order-flow` en pasos con navegación hacia atrás que conserva el carrito
+- [x] 2.2 Paso modalidad como primera pantalla, según `deliveryAvailable`
+- [x] 2.3 Paso teléfono: prefijo fijo `+569`, `inputmode="numeric"`, 8 dígitos, solo números
+- [x] 2.4 Paso bienvenida/nombre con lookup, "¡Qué rico volver a verte, {nombre}!" y "¿No eres tú?"
+- [x] 2.5 Paso dirección: sugerir la última, listar las guardadas, nueva con GPS o marcador manual; bloqueo fuera de cobertura con opción de retiro
+- [x] 2.6 Nota por ítem en el detalle del producto y en el carrito
+- [x] 2.7 Resumen con total, medio de pago esperado según modalidad y sucursal, "pago con" y vuelto, aviso de que elegir no es pagar
+- [x] 2.8 `clientRequestId` por confirmación, botón deshabilitado durante el envío y reintento seguro
+- [x] 2.9 Confirmación distinta para retiro y domicilio; manejo de los errores 422/409
+- [x] 2.10 Pago contra entrega explícito en domicilio: "Pagas al recibir tu pedido", sin transferencia, botón "Confirmar pedido · pagas $X al recibir"
+- [x] 2.11 Pantalla de seguimiento `/pedido/:number` con línea de tiempo, indicador "Por pagar $X (al recibir / en caja)" o "Pagado ✓", consulta cada 15 s y fin al llegar a un estado final; motivo cuando el local rechaza
+- [x] 2.12 Comprobante del pedido activo en localStorage por tenant/sucursal (`number`, `trackingToken`, `phone`, `mode`); al recargar o volver a escanear el QR se abre directo el seguimiento; al llegar a un estado final o con token desconocido se borra y se ofrece "Hacer otro pedido"
 - [ ] 2.13 Eventos de journey para los pasos nuevos (sin datos personales)
 
 ## 3. POS (`@frontend-pos`)
