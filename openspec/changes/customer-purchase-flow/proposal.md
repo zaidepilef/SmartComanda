@@ -10,7 +10,8 @@ El comensal ya puede pedir por QR, elegir retiro o domicilio y ver una estimaci�
 
 ## What Changes
 
-- **Reconocimiento del cliente por teléfono**: la app pide primero el celular con `+569` precargado (8 dígitos, teclado numérico). Un endpoint público lo busca: si el cliente existe se le saluda ("¡Qué rico volver a verte, Ana!") y se le ofrecen sus direcciones guardadas, **enmascaradas**; si no, se le pide solo el nombre. Los teléfonos se normalizan a `+569XXXXXXXX`.
+- **Modalidad primero**: al escanear el QR la primera pantalla es "Retiro en local" o "Domicilio".
+- **Reconocimiento del cliente por teléfono**: después de elegir la modalidad, la app pide el celular con `+569` precargado (8 dígitos, teclado numérico). Un endpoint público lo busca: si el cliente existe se le saluda ("¡Qué rico volver a verte, Ana!") y se le ofrecen sus direcciones guardadas, **enmascaradas**; si no, se le pide solo el nombre. Los teléfonos se normalizan a `+569XXXXXXXX`.
 - **Direcciones guardadas**: nueva tabla `customer_addresses`. Cada pedido a domicilio guarda o reutiliza la dirección del cliente; el pedido puede referirse a una dirección guardada por `addressId`.
 - **Cobertura obligatoria**: un domicilio fuera del radio de la sucursal, o en una sucursal sin ubicación o sin radio configurado, **se rechaza**. La app ofrece cambiar a retiro en local. El domicilio exige un punto en el mapa (GPS o marcador manual).
 - **Medio de pago esperado**: el cliente indica cómo pagará (`cash`, `debit`, `credit` o `card` en domicilio) y, si es efectivo, con cuánto pagará. Esto es **solo una intención**: nunca marca el pedido como pagado.
@@ -19,7 +20,10 @@ El comensal ya puede pedir por QR, elegir retiro o domicilio y ver una estimaci�
   - Domicilio (`delivery` desde la app): pasa a cocina al confirmarse, con el pago pendiente; lo cobra el repartidor al entregar.
 - **Nuevo estado `out_for_delivery` ("En reparto")** entre `ready` y `delivered` para los domicilios de la app. Las pantallas muestran nombres según la modalidad ("Pendiente de pago", "Listo para retirar", "Listo para despacho").
 - **Nuevo rol `driver` (Repartidor)** y un tablero de reparto en el POS: toma pedidos listos, ve dirección, teléfono, total, medio esperado y vuelto; registra el cobro (efectivo / débito / crédito) y la entrega en una sola acción, o registra un cobro rechazado.
-- **Estado de pago ampliado**: `pending`, `paid`, `rejected`, `voided` (pedido anulado sin cobrar) y `refunded` (reservado). Cada cambio de pago queda en `payment_history`.
+- **Estado de pago ampliado**: `pending`, `paid`, `declined` (cobro con tarjeta rechazado en la puerta), `voided` (pedido anulado sin cobrar) y `refunded` (reservado). Cada cambio de pago queda en `payment_history`.
+- **Seguimiento del pedido por número**: al confirmar, el cliente recibe su número de pedido y un enlace de seguimiento privado (token aleatorio guardado en su teléfono) que muestra si el pedido está recibido, pendiente de pago en caja, en preparación, listo, en reparto, entregado, **rechazado por el local** (con motivo) o anulado.
+- **Rechazo del pedido por el local**: el cajero o el encargado pueden rechazar un pedido de la app (retiro o domicilio) antes de que entre en preparación, indicando un motivo (p. ej. "no tenemos stock", "fuera de horario", "datos de pago no cuadran"). Nuevo estado operativo `rejected`; el pago queda `voided`.
+- **Pago contra entrega explícito**: en domicilio el flujo dice claramente "Pagas al recibir tu pedido" en el resumen, en el botón de confirmar, en la confirmación y en el seguimiento. No hay pago anticipado ni transferencia en domicilio.
 - **Pedidos sin duplicados**: el cliente envía un `clientRequestId`; repetir la confirmación devuelve el mismo pedido.
 - **Nota por ítem** en el pedido público (personalización v1).
 - **BREAKING**: `POST /api/public/orders` exige teléfono en formato `+569XXXXXXXX`, `clientRequestId`, `expectedPaymentMethod`, y para domicilio coordenadas (o `addressId`); rechaza domicilios fuera de cobertura. Los domicilios de la app ya no esperan el cobro para entrar a cocina.
@@ -33,14 +37,18 @@ El comensal ya puede pedir por QR, elegir retiro o domicilio y ver una estimaci�
 
 ### Modified Capabilities
 
-- `customer-order-flow`: flujo por pasos (teléfono → bienvenida/nombre → modalidad → dirección → menú → resumen con medio de pago → confirmación), pedido público con idempotencia, notas, medio de pago esperado y cobertura obligatoria.
+- `pos-order-taking`: la cola QR permite rechazar pedidos con motivo al Cajero.
+
+- `customer-order-flow`: seguimiento del pedido por número y pago contra entrega explícito; flujo por pasos (modalidad → teléfono → bienvenida/nombre → dirección → menú → resumen con medio de pago → confirmación), pedido público con idempotencia, notas, medio de pago esperado y cobertura obligatoria.
 - `public-menu`: indica si la sucursal ofrece domicilio.
-- `kitchen-display`: estado `out_for_delivery`; los domicilios de la app entran a cocina con pago pendiente.
-- `order-checkout`: ciclo de vida del estado de pago, historial de pagos y anulación sin cobro como `voided`.
-- `role-permissions`: rol `driver` y sus permisos.
+- `kitchen-display`: estados `out_for_delivery` y `rejected`; los domicilios de la app entran a cocina con pago pendiente.
+- `order-checkout`: rechazo de pedidos de la app con motivo; ciclo de vida del estado de pago, historial de pagos y anulación sin cobro como `voided`.
+- `role-permissions`: rol `driver`, sus permisos y el permiso de rechazar pedidos.
 
 ## Non-goals
 
+- Pago anticipado o por transferencia en domicilio: el domicilio se paga siempre al recibir.
+- Notificaciones al cliente (WhatsApp/push) cuando cambia el estado: el seguimiento se consulta en la app.
 - Pagos en línea o pasarelas (Mercado Pago, KLAP): la estructura de pago queda lista para sumarlos.
 - Costo de envío, zonas tarifarias o pago anticipado del domicilio.
 - Agregados con precio (modificadores) por producto.

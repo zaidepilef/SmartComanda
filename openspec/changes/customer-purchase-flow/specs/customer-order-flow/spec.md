@@ -1,11 +1,11 @@
 ## MODIFIED Requirements
 
 ### Requirement: Customer ordering flow
-The system SHALL provide a mobile web app `frontend-client` reachable at `/q/:tenantId/:branchId` that guides the customer through these steps in order: (1) phone, (2) welcome for a known customer or name for a new one, (3) delivery mode, (4) delivery address when the mode is delivery, (5) the branch menu with a cart, (6) an order summary with the expected payment method, and (7) a confirmation. The app SHALL let the customer go back to a previous step without losing the cart, and SHALL remember the phone per tenant (localStorage) to pre-fill step 1.
+The system SHALL provide a mobile web app `frontend-client` reachable at `/q/:tenantId/:branchId` that guides the customer through these steps in order: (1) delivery mode ("Retiro en local" or "Domicilio"), (2) phone, (3) welcome for a known customer or name for a new one, (4) delivery address when the mode is delivery, (5) the branch menu with a cart, (6) an order summary with the expected payment method, and (7) a confirmation. The app SHALL let the customer go back to a previous step without losing the cart, and SHALL remember the phone per tenant (localStorage) to pre-fill step 2.
 
 #### Scenario: Opening the flow from the QR
 - **WHEN** a customer opens `/q/:tenantId/:branchId` for an active branch
-- **THEN** the app shows the phone step before anything else, and the menu later shows only dishes of that branch with their prices
+- **THEN** the first screen shows the business and branch name with the choice "Retiro en local" or "Domicilio", and the menu later shows only dishes of that branch with their prices
 
 #### Scenario: Phone is remembered per branch
 - **WHEN** a customer who already ordered returns to a branch of the same tenant
@@ -13,11 +13,11 @@ The system SHALL provide a mobile web app `frontend-client` reachable at `/q/:te
 
 #### Scenario: Placing the order
 - **WHEN** a pickup order is confirmed
-- **THEN** the confirmation shows the order number, the total, the expected payment method, and "Acércate a caja para pagar; preparamos tu pedido cuando esté pagado"
+- **THEN** the confirmation shows the order number, the total, the expected payment method, "Acércate a caja para pagar; preparamos tu pedido cuando esté pagado", and a "Ver estado de mi pedido" action
 
 #### Scenario: Delivery confirmation
 - **WHEN** a delivery order is confirmed
-- **THEN** the confirmation shows the order number, the total to pay on delivery, the expected payment method, the address, and the estimated minutes
+- **THEN** the confirmation shows the order number, "Pagas $X al recibir" with the expected payment method, the address, the estimated minutes, and a "Ver estado de mi pedido" action
 
 #### Scenario: Confirming an empty cart is blocked
 - **WHEN** the cart has no items
@@ -55,15 +55,15 @@ The system SHALL provide a public endpoint `POST /api/public/orders` taking `ten
 - **THEN** each order receives a distinct sequential `number` from the branch counter
 
 ### Requirement: Customer chooses pickup or delivery
-After the customer is identified, the client app SHALL ask whether the order is "Retiro en local" (stored as `orderType` `qr`) or "Domicilio" (stored as `orderType` `delivery`). "Domicilio" SHALL be offered only when the public menu reports `deliveryAvailable` `true`; otherwise only pickup is shown with a note that the branch does not deliver.
+As the first screen after scanning the QR, before asking for the phone, the client app SHALL ask whether the order is "Retiro en local" (stored as `orderType` `qr`) or "Domicilio" (stored as `orderType` `delivery`). "Domicilio" SHALL be offered only when the public menu reports `deliveryAvailable` `true`; otherwise only pickup is shown with a note that the branch does not deliver.
 
 #### Scenario: Pickup keeps the QR flow
 - **WHEN** the customer chooses "Retiro en local"
-- **THEN** the app shows the menu
+- **THEN** the app asks for the phone and, once the customer is identified, shows the menu
 
 #### Scenario: Delivery asks for an address
 - **WHEN** the customer chooses "Domicilio"
-- **THEN** the app shows the address step before the menu
+- **THEN** the app asks for the phone and, once the customer is identified, shows the address step with their saved addresses before the menu
 
 #### Scenario: Branch without delivery
 - **WHEN** the branch has `deliveryAvailable` `false`
@@ -114,11 +114,15 @@ The system SHALL estimate delivery as the straight-line (Haversine) distance bet
 ## ADDED Requirements
 
 ### Requirement: Order summary with expected payment
-Before confirming, the client app SHALL show a summary with the items, notes, quantities, unit and line prices, the total, the delivery mode, and the address for delivery, and SHALL ask how the customer will pay: for pickup one of the branch's enabled methods among Efectivo, Débito, and Crédito; for delivery Efectivo or Tarjeta (sent as `card`, offered only when the branch accepts debit or credit). For cash the customer MAY indicate the amount they will pay with, which SHALL be at least the total. The app SHALL state that choosing a method does not mean the order is paid. The server SHALL reject an `expectedPaymentMethod` not enabled on the branch and a `cashTendered` below the total.
+Before confirming, the client app SHALL show a summary with the items, notes, quantities, unit and line prices, the total, the delivery mode, and the address for delivery, and SHALL ask how the customer will pay: for pickup one of the branch's enabled methods among Efectivo, Débito, and Crédito; for delivery the summary SHALL state "Pagas al recibir tu pedido" above the choice between Efectivo or Tarjeta al recibir (sent as `card`, offered only when the branch accepts debit or credit), SHALL NOT offer transfer or any advance payment, and the confirm button SHALL read "Confirmar pedido · pagas $X al recibir". For cash the customer MAY indicate the amount they will pay with, which SHALL be at least the total. The app SHALL state that choosing a method does not mean the order is paid. The server SHALL reject an `expectedPaymentMethod` not enabled on the branch and a `cashTendered` below the total.
 
 #### Scenario: Customer knows the total before confirming
 - **WHEN** the customer opens the summary
 - **THEN** the total is shown and the confirm action shows the same total
+
+#### Scenario: Delivery states payment on delivery
+- **WHEN** a delivery customer opens the summary
+- **THEN** the app shows "Pagas al recibir tu pedido", offers only Efectivo and Tarjeta al recibir, and the confirm button shows the amount to pay on delivery
 
 #### Scenario: Cash with amount
 - **WHEN** a delivery customer chooses Efectivo and enters $10.000 for a $7.500 total
@@ -142,3 +146,39 @@ The client app SHALL generate a `clientRequestId` (UUID) when the summary is ope
 #### Scenario: Retry after a network error
 - **WHEN** the response is lost and the app retries with the same `clientRequestId`
 - **THEN** the API returns the order created by the first request and no new number is consumed
+
+### Requirement: Customer order tracking
+After confirming, the client app SHALL keep the order number and its tracking token on the device and SHALL offer a tracking screen at `/q/:tenantId/:branchId/pedido/:number` that shows the order number, the mode, the items and total, the payment message ("Paga en caja" for pickup, "Pagas $X al recibir" for delivery), the estimated minutes for delivery, and a timeline with the customer-facing status. The screen SHALL refresh every 15 seconds while the order is active and stop refreshing once it reaches `delivered`, `rejected`, or `cancelled`. Re-opening the QR with an active order on the device SHALL show a "Tienes un pedido en curso #N" shortcut to the tracking screen.
+
+Customer-facing statuses SHALL be: "Pendiente de pago en caja" (pickup, `new`, payment `pending`), "Recibido" (delivery, `new`), "En preparación", "Listo para retirar", "Listo para despacho", "En reparto", "Entregado", "Rechazado por el local" with the reason, and "Anulado".
+
+#### Scenario: Tracking a delivery order in preparation
+- **WHEN** the kitchen moves the customer's delivery order #16 to `preparing`
+- **THEN** within 15 seconds the tracking screen shows "#16 · En preparación" and "Pagas $6.000 al recibir"
+
+#### Scenario: Tracking an order out for delivery
+- **WHEN** a driver takes the order out for delivery
+- **THEN** the tracking screen shows "En reparto"
+
+#### Scenario: Order rejected by the seller
+- **WHEN** the cashier rejects the customer's order with the reason "No tenemos pan de completo"
+- **THEN** the tracking screen shows "Rechazado por el local" with that reason and stops refreshing
+
+#### Scenario: Returning with an active order
+- **WHEN** the customer scans the QR again while their order is `preparing`
+- **THEN** the app offers "Tienes un pedido en curso #16" before starting a new order
+
+### Requirement: Public order tracking endpoint
+The public order creation SHALL return a random `trackingToken` once, storing only its SHA-256 hash on the order. The system SHALL provide `POST /api/public/orders/track` taking `tenantId` and `trackingToken` in the body, rate limited like other public endpoints, that returns the order number, mode, customer-facing status, items, total, expected payment method, estimated minutes, rejection reason, and status timestamps. It SHALL NOT return the address, coordinates, phone, customer name, or any other order, and SHALL respond with HTTP 404 for an unknown token.
+
+#### Scenario: Valid token
+- **WHEN** the app sends the token returned when the order was created
+- **THEN** the response contains that order's number and customer-facing status
+
+#### Scenario: Guessing by order number is not possible
+- **WHEN** someone requests tracking with an order number or an invented token
+- **THEN** the endpoint responds with HTTP 404 and exposes no order data
+
+#### Scenario: No personal data in tracking
+- **WHEN** a delivery order is tracked
+- **THEN** the response contains no address, coordinates, phone, or name

@@ -47,7 +47,7 @@ After the phone lookup the client app SHALL greet a known customer by first name
 
 #### Scenario: Returning customer is greeted
 - **WHEN** a known customer enters their phone
-- **THEN** the app shows the welcome message with their first name and goes to the delivery mode step
+- **THEN** the app shows the welcome message with their first name and continues to the address step for delivery or to the menu for pickup
 
 #### Scenario: New customer gives their name
 - **WHEN** an unknown phone is entered
