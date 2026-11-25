@@ -18,34 +18,46 @@ The system SHALL provide a printed QR per branch whose URL is `{PUBLIC_URL}/q/{t
 - **THEN** the panel rejects the request
 
 ### Requirement: Customer ordering flow
-The system SHALL provide a mobile web app `frontend-client` reachable at `/q/:tenantId/:branchId` that first asks the customer for their name and a WhatsApp phone number, then shows the public menu of that branch with a cart, lets the customer place an order, and shows a confirmation with the order number, the total, and the instruction to pay at the cash register.
+The system SHALL provide a mobile web app `frontend-client` reachable at `/q/:tenantId/:branchId` that guides the customer through these steps in order: (1) delivery mode ("Retiro en local" or "Domicilio"), (2) phone, (3) welcome for a known customer or name for a new one, (4) delivery address when the mode is delivery, (5) the branch menu with a cart, (6) an order summary with the expected payment method, and (7) a confirmation. The app SHALL let the customer go back to a previous step without losing the cart, and SHALL remember the phone per tenant (localStorage) to pre-fill step 2.
 
 #### Scenario: Opening the flow from the QR
 - **WHEN** a customer opens `/q/:tenantId/:branchId` for an active branch
-- **THEN** the app prompts for name and phone number before showing the menu, and the menu shows only dishes of that branch with their prices
+- **THEN** the first screen shows the business and branch name with the choice "Retiro en local" or "Domicilio", and the menu later shows only dishes of that branch with their prices
 
 #### Scenario: Phone is remembered per branch
-- **WHEN** a customer who already entered their name and phone returns to the same branch
-- **THEN** the name and phone are pre-filled and the menu is shown without re-entering them
+- **WHEN** a customer who already ordered returns to a branch of the same tenant
+- **THEN** the phone is pre-filled and one tap continues to the lookup
 
 #### Scenario: Placing the order
-- **WHEN** the customer confirms a cart with one or more items
-- **THEN** the order is created with `orderType` `qr`, `paymentStatus` `pending`, `clientName` and `clientPhone` set to the entered name and phone, and the confirmation screen shows the order number, total, and "paga en caja"
+- **WHEN** a pickup order is confirmed
+- **THEN** the confirmation shows the order number, the total, the expected payment method, "Acércate a caja para pagar; preparamos tu pedido cuando esté pagado", and a "Ver estado de mi pedido" action
+
+#### Scenario: Delivery confirmation
+- **WHEN** a delivery order is confirmed
+- **THEN** the confirmation shows the order number, "Pagas $X al recibir" with the expected payment method, the address, the estimated minutes, and a "Ver estado de mi pedido" action
 
 #### Scenario: Confirming an empty cart is blocked
 - **WHEN** the cart has no items
-- **THEN** the confirm action is disabled
+- **THEN** the action to go to the summary is disabled
 
 ### Requirement: Public order creation
-The system SHALL provide a public endpoint `POST /api/public/orders` taking `tenantId`, `branchId`, `name`, `phone`, and items (`dishId`, `quantity`), that validates the branch and dishes exactly like authenticated order creation — including resolving prices server-side from the dish's branch override or default `salePrice`, assigning the sequential order `number` — SHALL store each item with `stockApplied` `false`, and SHALL store the customer identity (`clientName` and `clientPhone`) on the order and on the customer record.
+The system SHALL provide a public endpoint `POST /api/public/orders` taking `tenantId`, `branchId`, `name`, `phone`, `orderType` (`qr` or `delivery`), `clientRequestId`, `expectedPaymentMethod`, optional `cashTendered`, `delivery` when the type is `delivery`, and items (`dishId`, `quantity`, optional `note` up to 140 characters). It SHALL validate the branch and dishes exactly like authenticated order creation, resolve prices server-side from the dish's branch override or default `salePrice`, assign the sequential order `number`, store each item with `stockApplied` `false`, store `clientName` and `clientPhone` on the order and the name on the customer record, and always store the order with `paymentStatus` `pending`.
 
 #### Scenario: Prices are computed server-side
 - **WHEN** a customer sends items with quantities
-- **THEN** the order total is computed from the server-resolved dish prices, ignoring any client-sent price
+- **THEN** the order total is computed from the server-resolved dish prices, ignoring any client-sent price or total
 
 #### Scenario: Customer identity is stored on the order and customer
-- **WHEN** a QR order is created with a name and phone
-- **THEN** the order stores `clientName` and `clientPhone`, and the customer record for that phone keeps the provided name
+- **WHEN** a public order is created with a name and phone
+- **THEN** the order stores `clientName` and `clientPhone` (normalized), and the customer record for that phone keeps the provided name
+
+#### Scenario: Item notes are stored
+- **WHEN** an item is sent with the note "sin mayo"
+- **THEN** the order item stores the note and the kitchen shows it
+
+#### Scenario: App orders are never created as paid
+- **WHEN** a public order is sent with any extra field claiming a payment
+- **THEN** the order is stored with `paymentStatus` `pending`
 
 #### Scenario: Rejecting a dish of another tenant
 - **WHEN** an order item references a dish that does not belong to the branch's tenant or does not exist
@@ -67,18 +79,26 @@ The POS SHALL display the `clientName` and `clientPhone` of an order whose `orde
 - **THEN** the POS shows the customer's name and phone
 
 ### Requirement: Customer chooses pickup or delivery
-After the customer enters name and phone, the client app SHALL ask whether the order is "Retiro en local" (stored as `orderType` `qr`) or "Domicilio" (stored as `orderType` `delivery`). Orders created without a choice SHALL default to `qr`.
+As the first screen after scanning the QR, before asking for the phone, the client app SHALL ask whether the order is "Retiro en local" (stored as `orderType` `qr`) or "Domicilio" (stored as `orderType` `delivery`). "Domicilio" SHALL be offered only when the public menu reports `deliveryAvailable` `true`; otherwise only pickup is shown with a note that the branch does not deliver.
 
 #### Scenario: Pickup keeps the QR flow
 - **WHEN** the customer chooses "Retiro en local"
-- **THEN** the order is created with `orderType` `qr` exactly as before
+- **THEN** the app asks for the phone and, once the customer is identified, shows the menu
 
 #### Scenario: Delivery asks for an address
 - **WHEN** the customer chooses "Domicilio"
-- **THEN** the app asks for the delivery address before the order can be confirmed
+- **THEN** the app asks for the phone and, once the customer is identified, shows the address step with their saved addresses before the menu
+
+#### Scenario: Branch without delivery
+- **WHEN** the branch has `deliveryAvailable` `false`
+- **THEN** the app does not offer "Domicilio"
 
 ### Requirement: Delivery address with device location
-For delivery orders the client app SHALL offer a "Usar mi ubicación" action that reads the device position through the browser Geolocation API after the customer grants permission, shows it on a map with a draggable marker, and pre-fills an editable address. The customer SHALL be able to add a reference (apartment, directions). The public order endpoint SHALL require `delivery.address` when `orderType` is `delivery` and SHALL accept optional `delivery.lat`, `delivery.lng`, and `delivery.accuracy`.
+For delivery orders the client app SHALL first suggest the customer's last used saved address and list the other saved ones, and SHALL offer "Usar otra dirección" with "Usar mi ubicación", which reads the device position through the browser Geolocation API after permission, shows it on a map with a draggable marker, and pre-fills an editable address. When permission is denied, the customer SHALL place the marker on the map manually. The customer SHALL be able to add a reference (apartment, directions). The public order endpoint SHALL require for delivery either `delivery.addressId` of a saved address or `delivery.address` with `delivery.lat` and `delivery.lng`, plus optional `delivery.reference` and `delivery.accuracy`.
+
+#### Scenario: Last address is suggested
+- **WHEN** a known customer with saved addresses chooses "Domicilio"
+- **THEN** the last used address is pre-selected and the coverage estimate for it is shown
 
 #### Scenario: Location permission granted
 - **WHEN** the customer taps "Usar mi ubicación" and allows access
@@ -86,26 +106,30 @@ For delivery orders the client app SHALL offer a "Usar mi ubicación" action tha
 
 #### Scenario: Location permission denied
 - **WHEN** the customer denies location access
-- **THEN** the app explains it and the customer can still type the address and place the order
+- **THEN** the app explains it and lets the customer place the marker on the map and type the address
 
 #### Scenario: Delivery without address is rejected
-- **WHEN** a public order with `orderType` `delivery` has no `delivery.address`
+- **WHEN** a public order with `orderType` `delivery` has neither `delivery.addressId` nor `delivery.lat` and `delivery.lng`
 - **THEN** the API rejects it with a validation error
 
 ### Requirement: Delivery estimate
-The system SHALL estimate delivery as the straight-line (Haversine) distance between the branch and the customer multiplied by 1.4, and minutes as that distance divided by the branch `deliveryAvgSpeedKmh`, rounded up. The estimate SHALL be out of range when it exceeds the branch `deliveryMaxKm` or `deliveryMaxMinutes`. Out of range SHALL be a warning only and SHALL NOT block the order. When a delivery order has coordinates and the branch has coordinates, the server SHALL compute the estimate itself and store `deliveryDistanceKm`, `deliveryEtaMinutes`, and `deliveryOutOfRange` on the order.
+The system SHALL estimate delivery as the straight-line (Haversine) distance between the branch and the customer multiplied by 1.4, and minutes as that distance divided by the branch `deliveryAvgSpeedKmh`, rounded up. The estimate SHALL be out of range when it exceeds the branch `deliveryMaxKm` or `deliveryMaxMinutes`. The server SHALL compute the estimate itself, store `deliveryDistanceKm`, `deliveryEtaMinutes`, and `deliveryOutOfRange` on the order, and SHALL reject a delivery order that is out of range, or for a branch without delivery available, with HTTP 422 and code `DELIVERY_OUT_OF_RANGE` or `DELIVERY_UNAVAILABLE`.
 
 #### Scenario: Estimate shown before ordering
-- **WHEN** the customer fixes the delivery point on the map
+- **WHEN** the customer selects or fixes the delivery point
 - **THEN** the app shows "Llegamos en ~X min (Y km)"
 
 #### Scenario: Out of range warning
 - **WHEN** the estimate exceeds the branch limits
-- **THEN** the app warns that the address is outside the usual zone and still allows the order
+- **THEN** the app tells the customer the address is outside the delivery zone, does not let them continue with that address, and offers to switch to "Retiro en local" or choose another address
 
 #### Scenario: Branch without coordinates
-- **WHEN** the branch has no coordinates
-- **THEN** no estimate is shown and the delivery order is created without estimate fields
+- **WHEN** a public delivery order is sent for a branch without coordinates or without delivery limits
+- **THEN** the API responds with HTTP 422 `DELIVERY_UNAVAILABLE` and creates no order
+
+#### Scenario: Server rejects out of range
+- **WHEN** a public delivery order is sent for a point outside the branch limits
+- **THEN** the API responds with HTTP 422 `DELIVERY_OUT_OF_RANGE` and creates no order
 
 #### Scenario: Client-sent estimate is ignored
 - **WHEN** a public order includes its own distance or minutes values
@@ -117,3 +141,93 @@ POS (kitchen, QR orders, receipt) and the admin order detail SHALL show, for del
 #### Scenario: Delivery order in the POS
 - **WHEN** a cashier opens a delivery order with coordinates
 - **THEN** the POS shows the address, "X km · ~Y min", and a link that opens the location in a maps app
+
+### Requirement: Order summary with expected payment
+Before confirming, the client app SHALL show a summary with the items, notes, quantities, unit and line prices, the total, the delivery mode, and the address for delivery, and SHALL ask how the customer will pay: for pickup one of the branch's enabled methods among Efectivo, Débito, and Crédito; for delivery the summary SHALL state "Pagas al recibir tu pedido" above the choice between Efectivo or Tarjeta al recibir (sent as `card`, offered only when the branch accepts debit or credit), SHALL NOT offer transfer or any advance payment, and the confirm button SHALL read "Confirmar pedido · pagas $X al recibir". For cash the customer MAY indicate the amount they will pay with, which SHALL be at least the total. The app SHALL state that choosing a method does not mean the order is paid. The server SHALL reject an `expectedPaymentMethod` not enabled on the branch and a `cashTendered` below the total.
+
+#### Scenario: Customer knows the total before confirming
+- **WHEN** the customer opens the summary
+- **THEN** the total is shown and the confirm action shows the same total
+
+#### Scenario: Delivery states payment on delivery
+- **WHEN** a delivery customer opens the summary
+- **THEN** the app shows "Pagas al recibir tu pedido", offers only Efectivo and Tarjeta al recibir, and the confirm button shows the amount to pay on delivery
+
+#### Scenario: Cash with amount
+- **WHEN** a delivery customer chooses Efectivo and enters $10.000 for a $7.500 total
+- **THEN** the order stores `expectedPaymentMethod` `cash` and `cashTendered` 10000
+
+#### Scenario: Cash amount below total
+- **WHEN** the customer enters a cash amount below the total
+- **THEN** the app blocks confirmation and the API would reject it
+
+#### Scenario: Method not enabled on the branch
+- **WHEN** an order is sent with `expectedPaymentMethod` `credit` for a branch that only accepts cash and debit
+- **THEN** the API rejects it with a validation error
+
+### Requirement: Duplicate order protection
+The client app SHALL generate a `clientRequestId` (UUID) when the summary is opened and reuse it for every retry of that confirmation, and SHALL disable the confirm action while a request is in flight. The server SHALL create at most one order per `(tenantId, clientRequestId)`: a repeated request with the same phone SHALL return the existing order with HTTP 200, and one with a different phone SHALL be rejected with HTTP 409.
+
+#### Scenario: Double tap on confirm
+- **WHEN** the customer taps "Confirmar pedido" twice quickly
+- **THEN** only one order is created
+
+#### Scenario: Retry after a network error
+- **WHEN** the response is lost and the app retries with the same `clientRequestId`
+- **THEN** the API returns the order created by the first request and no new number is consumed
+
+### Requirement: Customer order tracking
+After confirming, the client app SHALL store an active-order receipt on the device (localStorage, one per tenant and branch) with the order number, the tracking token, the phone, and the mode, and SHALL open the tracking screen at `/q/:tenantId/:branchId/pedido/:number`. While that order is active, the app SHALL stay on the tracking screen: reloading the page or scanning the QR again SHALL open the tracking screen directly instead of the mode step, without asking for the phone again. The screen SHALL show the order number, the mode, the items and total, the estimated minutes for delivery, a timeline with the customer-facing status, and a payment indicator derived from `paymentStatus`: "Por pagar $X al recibir" for delivery and "Por pagar $X en caja" for pickup while payment is `pending` or `declined`, and "Pagado ✓" once it is `paid`. The screen SHALL refresh every 15 seconds while the order is active and stop refreshing once it reaches `delivered`, `rejected`, or `cancelled`. When the order reaches a final status, the app SHALL show that final status, remove the stored receipt, and offer "Hacer otro pedido", which starts a new order from the mode step. If the track endpoint does not recognize the stored token, the app SHALL remove the receipt and start a new order.
+
+Customer-facing statuses SHALL be: "Pendiente de pago en caja" (pickup, `new`, payment `pending`), "Recibido" (delivery, `new`), "En preparación", "Listo para retirar", "Listo para despacho", "En reparto", "Entregado", "Rechazado por el local" with the reason, and "Anulado".
+
+#### Scenario: Tracking a delivery order in preparation
+- **WHEN** the kitchen moves the customer's delivery order #16 to `preparing`
+- **THEN** within 15 seconds the tracking screen shows "#16 · En preparación" and "Por pagar $6.000 al recibir"
+
+#### Scenario: Tracking an order out for delivery
+- **WHEN** a driver takes the order out for delivery
+- **THEN** the tracking screen shows "En reparto"
+
+#### Scenario: Order rejected by the seller
+- **WHEN** the cashier rejects the customer's order with the reason "No tenemos pan de completo"
+- **THEN** the tracking screen shows "Rechazado por el local" with that reason and stops refreshing
+
+#### Scenario: Returning with an active order
+- **WHEN** the customer scans the QR again while their order #16 is `preparing`
+- **THEN** the app opens the tracking screen of #16 directly, without showing the mode step or asking for the phone
+
+#### Scenario: Reloading the tracking screen
+- **WHEN** the customer reloads the page while their delivery order #16 is `out_for_delivery`
+- **THEN** the app shows "#16 · En reparto · Por pagar $6.000 al recibir" again
+
+#### Scenario: Payment indicator after collection
+- **WHEN** the driver collects the payment and marks the delivery order as delivered
+- **THEN** the tracking screen shows "Entregado" and "Pagado ✓" and stops refreshing
+
+#### Scenario: Pickup order paid at the counter
+- **WHEN** the cashier charges the customer's pickup order and the kitchen moves it to `preparing`
+- **THEN** the tracking screen changes from "Por pagar $5.000 en caja" to "Pagado ✓" and shows "En preparación"
+
+#### Scenario: Starting a new order after the order closes
+- **WHEN** the customer's order reaches `delivered`, `rejected`, or `cancelled` and the customer taps "Hacer otro pedido"
+- **THEN** the stored receipt is removed and scanning the QR again starts at the mode step
+
+#### Scenario: Unknown stored token
+- **WHEN** the stored tracking token is not recognized by the track endpoint
+- **THEN** the app removes the stored receipt and starts a new order at the mode step
+
+### Requirement: Public order tracking endpoint
+The public order creation SHALL return a random `trackingToken` once, storing only its SHA-256 hash on the order. The system SHALL provide `POST /api/public/orders/track` taking `tenantId` and `trackingToken` in the body, rate limited like other public endpoints, that returns the order number, mode, customer-facing status, items, total, expected payment method, estimated minutes, rejection reason, and status timestamps. It SHALL NOT return the address, coordinates, phone, customer name, or any other order, and SHALL respond with HTTP 404 for an unknown token.
+
+#### Scenario: Valid token
+- **WHEN** the app sends the token returned when the order was created
+- **THEN** the response contains that order's number and customer-facing status
+
+#### Scenario: Guessing by order number is not possible
+- **WHEN** someone requests tracking with an order number or an invented token
+- **THEN** the endpoint responds with HTTP 404 and exposes no order data
+
+#### Scenario: No personal data in tracking
+- **WHEN** a delivery order is tracked
+- **THEN** the response contains no address, coordinates, phone, or name
