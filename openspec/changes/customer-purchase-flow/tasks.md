@@ -1,6 +1,6 @@
 ## 0. Prerrequisitos
 
-- [ ] 0.1 Verificar y archivar `pos-roles-and-cash`, `customer-identity-orders` y `delivery-location-estimate` (tareas manuales pendientes en los dos últimos)
+- [x] 0.1 Verificar y archivar `pos-roles-and-cash`, `customer-identity-orders` y `delivery-location-estimate` (tareas manuales pendientes en los dos últimos)
 - [ ] 0.2 Confirmar `develop` actualizado en monorepo, `@backend`, `@frontend-client`, `@frontend-pos` y `@frontend-admin`
 
 ## 1. Backend (`@backend`)

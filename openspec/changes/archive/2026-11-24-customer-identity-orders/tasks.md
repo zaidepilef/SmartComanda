@@ -16,9 +16,9 @@
 
 - [x] 3.1 Agregar `clientName?: string` a la interfaz `Order` en `orders.service.ts` y verificar compilación
 - [x] 3.2 Mostrar en `kds.html` el nombre y teléfono del cliente junto al tipo de pedido en cada tarjeta (quién y cómo pidió), y verificar que aparece para pedidos QR y no rompe tarjetas sin `clientName`
-- [ ] 3.3 Mostrar `clientName` + `clientPhone` en el detalle/alerta POS de pedidos `qr` si el checkout lo requiere, y verificar visualmente con una orden QR de pago pendiente
+- [x] 3.3 Mostrar `clientName` + `clientPhone` en el detalle/alerta POS de pedidos `qr` si el checkout lo requiere, y verificar visualmente con una orden QR de pago pendiente
 
 ## 4. Validación transversal
 
-- [ ] 4.1 Levantar `@backend`, `@frontend-client` y `@frontend-pos` juntos y verificar el flujo completo: QR → nombre + teléfono → menú → carrito → pedido → visible en KDS con quién y cómo pidió
+- [x] 4.1 Levantar `@backend`, `@frontend-client` y `@frontend-pos` juntos y verificar el flujo completo: QR → nombre + teléfono → menú → carrito → pedido → visible en KDS con quién y cómo pidió
 - [x] 4.2 Ejecutar `openspec validate customer-identity-orders --type change --strict` y documentar en el resumen del cambio los resultados

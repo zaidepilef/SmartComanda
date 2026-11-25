@@ -32,11 +32,11 @@ The system SHALL track each order through the statuses `new`, `preparing`, `read
 - **THEN** the change is applied and the payment stays `pending`
 
 ### Requirement: Kitchen display
-The system SHALL provide a kitchen screen that polls the branch's orders and groups them by status, showing for each order its number, elapsed time, mode (Retiro / Domicilio), items with quantities and notes, and one-tap buttons to advance the status. The kitchen screen SHALL NOT show `pending` orders of type `qr`, SHALL show app delivery orders as soon as they are created with a "Paga al recibir" badge, SHALL hide orders once they reach `out_for_delivery`, and SHALL show the cancel action only to `admin`, `owner`, and `sysadmin` users. Status labels SHALL depend on the mode: "Listo para retirar" for pickup and "Listo para despacho" for delivery.
+The system SHALL provide a kitchen screen that polls the branch's orders and groups them by status, showing for each order its number, elapsed time, the customer identity (name and phone), the order type and mode (Retiro / Domicilio), items with quantities and notes, and one-tap buttons to advance the status. The kitchen screen SHALL NOT show `pending` orders of type `qr`, SHALL show app delivery orders as soon as they are created with a "Paga al recibir" badge, SHALL hide orders once they reach `out_for_delivery`, and SHALL show the cancel action only to `admin`, `owner`, and `sysadmin` users. Status labels SHALL depend on the mode: "Listo para retirar" for pickup and "Listo para despacho" for delivery.
 
 #### Scenario: New orders appear on the kitchen screen
 - **WHEN** an order is created at the POS, a QR order is charged, or a customer confirms a delivery order, and the kitchen screen polls
-- **THEN** the order appears in the `new` group with its items and notes
+- **THEN** the order appears in the `new` group with its items, notes, the customer name and phone (when present), and the order type
 
 #### Scenario: Unpaid QR orders are hidden from the kitchen
 - **WHEN** a customer places a QR order that has not been charged

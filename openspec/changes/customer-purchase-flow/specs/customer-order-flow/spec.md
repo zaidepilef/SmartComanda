@@ -30,6 +30,10 @@ The system SHALL provide a public endpoint `POST /api/public/orders` taking `ten
 - **WHEN** a customer sends items with quantities
 - **THEN** the order total is computed from the server-resolved dish prices, ignoring any client-sent price or total
 
+#### Scenario: Customer identity is stored on the order and customer
+- **WHEN** a public order is created with a name and phone
+- **THEN** the order stores `clientName` and `clientPhone` (normalized), and the customer record for that phone keeps the provided name
+
 #### Scenario: Item notes are stored
 - **WHEN** an item is sent with the note "sin mayo"
 - **THEN** the order item stores the note and the kitchen shows it
@@ -53,7 +57,7 @@ The system SHALL provide a public endpoint `POST /api/public/orders` taking `ten
 ### Requirement: Customer chooses pickup or delivery
 After the customer is identified, the client app SHALL ask whether the order is "Retiro en local" (stored as `orderType` `qr`) or "Domicilio" (stored as `orderType` `delivery`). "Domicilio" SHALL be offered only when the public menu reports `deliveryAvailable` `true`; otherwise only pickup is shown with a note that the branch does not deliver.
 
-#### Scenario: Pickup goes to the menu
+#### Scenario: Pickup keeps the QR flow
 - **WHEN** the customer chooses "Retiro en local"
 - **THEN** the app shows the menu
 
@@ -80,7 +84,7 @@ For delivery orders the client app SHALL first suggest the customer's last used 
 - **WHEN** the customer denies location access
 - **THEN** the app explains it and lets the customer place the marker on the map and type the address
 
-#### Scenario: Delivery without coordinates is rejected
+#### Scenario: Delivery without address is rejected
 - **WHEN** a public order with `orderType` `delivery` has neither `delivery.addressId` nor `delivery.lat` and `delivery.lng`
 - **THEN** the API rejects it with a validation error
 
@@ -91,9 +95,13 @@ The system SHALL estimate delivery as the straight-line (Haversine) distance bet
 - **WHEN** the customer selects or fixes the delivery point
 - **THEN** the app shows "Llegamos en ~X min (Y km)"
 
-#### Scenario: Out of range blocks delivery
+#### Scenario: Out of range warning
 - **WHEN** the estimate exceeds the branch limits
 - **THEN** the app tells the customer the address is outside the delivery zone, does not let them continue with that address, and offers to switch to "Retiro en local" or choose another address
+
+#### Scenario: Branch without coordinates
+- **WHEN** a public delivery order is sent for a branch without coordinates or without delivery limits
+- **THEN** the API responds with HTTP 422 `DELIVERY_UNAVAILABLE` and creates no order
 
 #### Scenario: Server rejects out of range
 - **WHEN** a public delivery order is sent for a point outside the branch limits

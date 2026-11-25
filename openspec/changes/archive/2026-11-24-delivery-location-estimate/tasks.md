@@ -31,4 +31,4 @@
 - [x] 5.1 Tests del backend en verde
 - [x] 5.2 Builds de admin, cliente y POS
 - [x] 5.3 Pedido a domicilio desde el celular emulado contra la API local (GPS simulado y permiso denegado)
-- [ ] 5.4 Probar admin (ubicar sucursal, pedidos, reporte) y POS (cola y cocina) con sesión iniciada
+- [x] 5.4 Probar admin (ubicar sucursal, pedidos, reporte) y POS (cola y cocina) con sesión iniciada
