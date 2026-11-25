@@ -148,13 +148,13 @@ The client app SHALL generate a `clientRequestId` (UUID) when the summary is ope
 - **THEN** the API returns the order created by the first request and no new number is consumed
 
 ### Requirement: Customer order tracking
-After confirming, the client app SHALL keep the order number and its tracking token on the device and SHALL offer a tracking screen at `/q/:tenantId/:branchId/pedido/:number` that shows the order number, the mode, the items and total, the payment message ("Paga en caja" for pickup, "Pagas $X al recibir" for delivery), the estimated minutes for delivery, and a timeline with the customer-facing status. The screen SHALL refresh every 15 seconds while the order is active and stop refreshing once it reaches `delivered`, `rejected`, or `cancelled`. Re-opening the QR with an active order on the device SHALL show a "Tienes un pedido en curso #N" shortcut to the tracking screen.
+After confirming, the client app SHALL store an active-order receipt on the device (localStorage, one per tenant and branch) with the order number, the tracking token, the phone, and the mode, and SHALL open the tracking screen at `/q/:tenantId/:branchId/pedido/:number`. While that order is active, the app SHALL stay on the tracking screen: reloading the page or scanning the QR again SHALL open the tracking screen directly instead of the mode step, without asking for the phone again. The screen SHALL show the order number, the mode, the items and total, the estimated minutes for delivery, a timeline with the customer-facing status, and a payment indicator derived from `paymentStatus`: "Por pagar $X al recibir" for delivery and "Por pagar $X en caja" for pickup while payment is `pending` or `declined`, and "Pagado ✓" once it is `paid`. The screen SHALL refresh every 15 seconds while the order is active and stop refreshing once it reaches `delivered`, `rejected`, or `cancelled`. When the order reaches a final status, the app SHALL show that final status, remove the stored receipt, and offer "Hacer otro pedido", which starts a new order from the mode step. If the track endpoint does not recognize the stored token, the app SHALL remove the receipt and start a new order.
 
 Customer-facing statuses SHALL be: "Pendiente de pago en caja" (pickup, `new`, payment `pending`), "Recibido" (delivery, `new`), "En preparación", "Listo para retirar", "Listo para despacho", "En reparto", "Entregado", "Rechazado por el local" with the reason, and "Anulado".
 
 #### Scenario: Tracking a delivery order in preparation
 - **WHEN** the kitchen moves the customer's delivery order #16 to `preparing`
-- **THEN** within 15 seconds the tracking screen shows "#16 · En preparación" and "Pagas $6.000 al recibir"
+- **THEN** within 15 seconds the tracking screen shows "#16 · En preparación" and "Por pagar $6.000 al recibir"
 
 #### Scenario: Tracking an order out for delivery
 - **WHEN** a driver takes the order out for delivery
@@ -165,8 +165,28 @@ Customer-facing statuses SHALL be: "Pendiente de pago en caja" (pickup, `new`, p
 - **THEN** the tracking screen shows "Rechazado por el local" with that reason and stops refreshing
 
 #### Scenario: Returning with an active order
-- **WHEN** the customer scans the QR again while their order is `preparing`
-- **THEN** the app offers "Tienes un pedido en curso #16" before starting a new order
+- **WHEN** the customer scans the QR again while their order #16 is `preparing`
+- **THEN** the app opens the tracking screen of #16 directly, without showing the mode step or asking for the phone
+
+#### Scenario: Reloading the tracking screen
+- **WHEN** the customer reloads the page while their delivery order #16 is `out_for_delivery`
+- **THEN** the app shows "#16 · En reparto · Por pagar $6.000 al recibir" again
+
+#### Scenario: Payment indicator after collection
+- **WHEN** the driver collects the payment and marks the delivery order as delivered
+- **THEN** the tracking screen shows "Entregado" and "Pagado ✓" and stops refreshing
+
+#### Scenario: Pickup order paid at the counter
+- **WHEN** the cashier charges the customer's pickup order and the kitchen moves it to `preparing`
+- **THEN** the tracking screen changes from "Por pagar $5.000 en caja" to "Pagado ✓" and shows "En preparación"
+
+#### Scenario: Starting a new order after the order closes
+- **WHEN** the customer's order reaches `delivered`, `rejected`, or `cancelled` and the customer taps "Hacer otro pedido"
+- **THEN** the stored receipt is removed and scanning the QR again starts at the mode step
+
+#### Scenario: Unknown stored token
+- **WHEN** the stored tracking token is not recognized by the track endpoint
+- **THEN** the app removes the stored receipt and starts a new order at the mode step
 
 ### Requirement: Public order tracking endpoint
 The public order creation SHALL return a random `trackingToken` once, storing only its SHA-256 hash on the order. The system SHALL provide `POST /api/public/orders/track` taking `tenantId` and `trackingToken` in the body, rate limited like other public endpoints, that returns the order number, mode, customer-facing status, items, total, expected payment method, estimated minutes, rejection reason, and status timestamps. It SHALL NOT return the address, coordinates, phone, customer name, or any other order, and SHALL respond with HTTP 404 for an unknown token.
