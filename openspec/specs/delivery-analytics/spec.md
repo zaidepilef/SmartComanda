@@ -1,7 +1,7 @@
 # delivery-analytics Specification
 
 ## Purpose
-TBD - created by archiving change delivery-location-estimate. Update Purpose after archive.
+Da a los encargados del local un informe y un mapa de los pedidos a domicilio de un período (distancias, tiempos estimados y pedidos fuera de cobertura) para analizar la zona de reparto de cada sucursal.
 
 ## Requirements
 
