@@ -21,7 +21,7 @@
 - [x] 3.1 Servicio `JourneyService`: id de sesión en `sessionStorage`, cola, envío en lote y `sendBeacon` al ocultar la página
 - [x] 3.2 Emitir eventos desde el flujo (QR abierto, menú, identidad, carrito, envío, resultado) y nueva sesión tras "Hacer otro pedido"
 - [x] 3.3 Enviar `X-Journey-Session` en `createOrder`
-- [ ] 3.4 Garantizar que fallos de tracking no afecten el pedido (tests) — implementado (errores capturados, sin bloquear); falta test automatizado: el client no tiene runner de tests configurado
+- [x] 3.4 Garantizar que fallos de tracking no afecten el pedido (tests): runner Vitest (`ng test`) en el cliente; `journey.service.spec.ts` (sin sesión, lote, reintento único, 4xx sin reintento, sin sessionStorage) y `order-store.journey.spec.ts` (pedido creado con la API de eventos caída)
 
 ## 4. Admin: visualizador (@frontend-admin)
 
