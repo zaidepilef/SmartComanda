@@ -42,13 +42,13 @@
 
 ## 3. POS (`@frontend-pos`)
 
-- [ ] 3.1 Etiquetas de estado por modalidad y estado de pago (servicio compartido)
-- [ ] 3.2 Cocina: domicilios con pago pendiente visibles con el distintivo "Paga al recibir"; ocultar `out_for_delivery`; mostrar notas
-- [ ] 3.3 Cola QR: preseleccionar el medio de pago esperado
-- [ ] 3.4 Pantalla "Reparto": listos / en reparto, datos de entrega, llamar, mapa, total, vuelto, salir a reparto, aviso de caja cerrada
-- [ ] 3.5 Cobro con entrega (efectivo con monto recibido, débito, crédito) y registro de cobro rechazado
-- [ ] 3.6 Acción "Rechazar" con motivo obligatorio en la cola QR y en las tarjetas de domicilio `new` de cocina (Cajero y superiores)
-- [ ] 3.7 Menú y rutas para `driver` (solo Reparto); asignación por Encargado
+- [x] 3.1 Etiquetas de estado por modalidad y estado de pago (servicio compartido)
+- [x] 3.2 Cocina: domicilios con pago pendiente visibles con el distintivo "Paga al recibir"; ocultar `out_for_delivery`; mostrar notas
+- [x] 3.3 Cola QR: preseleccionar el medio de pago esperado
+- [x] 3.4 Pantalla "Reparto": listos / en reparto, datos de entrega, llamar, mapa, total, vuelto, salir a reparto, aviso de caja cerrada
+- [x] 3.5 Cobro con entrega (efectivo con monto recibido, débito, crédito) y registro de cobro rechazado
+- [x] 3.6 Acción "Rechazar" con motivo obligatorio en la cola QR y en las tarjetas de domicilio `new` de cocina (Cajero y superiores)
+- [x] 3.7 Menú y rutas para `driver` (solo Reparto); asignación por Encargado
 
 ## 4. Admin (`@frontend-admin`)
 
