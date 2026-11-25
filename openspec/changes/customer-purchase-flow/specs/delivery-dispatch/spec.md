@@ -31,7 +31,7 @@ The system SHALL let a `driver` take a `ready` app delivery order of their branc
 - **THEN** the order's `driverId` changes and the change is recorded in the history
 
 ### Requirement: Collect payment on delivery
-The system SHALL provide `POST /api/orders/:id/deliver` taking `paymentMethod` (`cash`, `debit`, or `credit`, enabled on the branch) and, for cash, `cashReceived`. Only the assigned driver or `admin`, `owner`, `sysadmin` SHALL call it, and only for an `out_for_delivery` order whose payment status is `pending` or `rejected`. In a single transaction it SHALL mark the order `paid` with the method, `paidBy` set to the user, and the branch's open cash session, add the amount to that session's totals, append the payment to the payment history, and move the order to `delivered`. Cash SHALL be rejected when `cashReceived` is below the total, and the response SHALL include the change. Loyalty points SHALL be awarded as for a charge at the register.
+The system SHALL provide `POST /api/orders/:id/deliver` taking `paymentMethod` (`cash`, `debit`, or `credit`, enabled on the branch) and, for cash, `cashReceived`. Only the assigned driver or `admin`, `owner`, `sysadmin` SHALL call it, and only for an `out_for_delivery` order whose payment status is `pending` or `declined`. In a single transaction it SHALL mark the order `paid` with the method, `paidBy` set to the user, and the branch's open cash session, add the amount to that session's totals, append the payment to the payment history, and move the order to `delivered`. Cash SHALL be rejected when `cashReceived` is below the total, and the response SHALL include the change. Loyalty points SHALL be awarded as for a charge at the register.
 
 #### Scenario: Cash on delivery
 - **WHEN** the driver delivers a $7.500 order and records cash with `cashReceived` 10000
@@ -57,9 +57,9 @@ The system SHALL provide `POST /api/orders/:id/deliver` taking `paymentMethod` (
 - **WHEN** a `driver` tries to deliver an order assigned to a different driver
 - **THEN** the API responds with HTTP 403
 
-### Requirement: Rejected card payment on delivery
-The system SHALL provide `POST /api/orders/:id/payment-rejected` with an optional note, allowed to the assigned driver and to `admin`, `owner`, `sysadmin`, that sets the payment status of an `out_for_delivery` order to `rejected` and records it in the payment history without changing the order status. A `rejected` order SHALL still be collectable with any enabled method.
+### Requirement: Declined card payment on delivery
+The system SHALL provide `POST /api/orders/:id/payment-declined` with an optional note, allowed to the assigned driver and to `admin`, `owner`, `sysadmin`, that sets the payment status of an `out_for_delivery` order to `declined` and records it in the payment history without changing the order status. A `declined` order SHALL still be collectable with any enabled method.
 
 #### Scenario: Card declined, then paid in cash
 - **WHEN** the driver records a declined card and then delivers the order with cash
-- **THEN** the payment history shows `rejected` and then `paid` with method `cash`
+- **THEN** the payment history shows `declined` and then `paid` with method `cash`

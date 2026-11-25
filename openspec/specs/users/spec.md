@@ -34,22 +34,26 @@ The system SHALL persist users in a `users` table in PostgreSQL with the followi
 - **THEN** the API responds with HTTP 400 and no user is created or modified.
 
 ### Requirement: CRUD API for users
-The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system. Create, update, and delete operations SHALL be restricted to users whose roles include `sysadmin`, or to users whose roles include `admin` operating within their own tenant. User reads SHALL be tenant-scoped: a non-sysadmin user SHALL only see users whose `tenantId` matches its own; a user with the `sysadmin` role SHALL see all users.
+The system SHALL expose REST endpoints under `/api/users` to create, read, update, delete, and list users. All `/api/users` endpoints SHALL require a valid Bearer token issued by the authentication system. Create and update operations SHALL be restricted to users whose roles include `sysadmin`, or to users whose roles include `owner` or `admin` operating within their own tenant; delete SHALL be restricted to `sysadmin`. User reads SHALL be tenant-scoped: a non-sysadmin user SHALL only see users whose `tenantId` matches its own; a user with the `sysadmin` role SHALL see all users.
 
 #### Scenario: Creating a user
 - **WHEN** an authenticated `sysadmin` POSTs a valid user payload to `/api/users`
 - **THEN** the API creates the user and responds with HTTP 201 and the created user without the password hash.
 
 #### Scenario: Creating a user without authorized role
-- **WHEN** a user whose roles are neither `sysadmin` nor `admin` POSTs to `/api/users`
+- **WHEN** a user whose roles are only `cashier` or `cook` POSTs to `/api/users`
 - **THEN** the API responds with HTTP 403 and no user is created.
 
+#### Scenario: Owner creating staff in its own tenant
+- **WHEN** an authenticated `owner` POSTs a valid user payload with role `admin`, `cashier`, or `cook` whose `tenantId` matches the owner's own tenant
+- **THEN** the API creates the user and responds with HTTP 201 and the created user without the password hash.
+
 #### Scenario: Admin creating a user in its own tenant
-- **WHEN** an authenticated `admin` POSTs a valid user payload whose `tenantId` matches the admin's own tenant to `/api/users`
+- **WHEN** an authenticated `admin` POSTs a valid user payload with role `cashier` or `cook` whose `tenantId` matches the admin's own tenant
 - **THEN** the API creates the user and responds with HTTP 201 and the created user without the password hash.
 
 #### Scenario: Admin creating a user in another tenant
-- **WHEN** an authenticated `admin` POSTs a user payload whose `tenantId` differs from the admin's own tenant
+- **WHEN** an authenticated `admin` or `owner` POSTs a user payload whose `tenantId` differs from its own tenant
 - **THEN** the API responds with HTTP 403 and no user is created.
 
 #### Scenario: Reading a user in the same tenant
@@ -58,7 +62,7 @@ The system SHALL expose REST endpoints under `/api/users` to create, read, updat
 
 #### Scenario: Reading a user outside the client's tenant
 - **WHEN** a non-sysadmin authenticated client GETs `/api/users/:id` with an existing user id whose `tenantId` differs from the client's own tenant, or that belongs to a user without a tenant
-- **THEN** the API responds with HTTP 403 and no user data is returned.
+- **THEN** the API responds with HTTP 404.
 
 #### Scenario: Sysadmin reading any user
 - **WHEN** an authenticated `sysadmin` GETs `/api/users/:id` with an existing user id
@@ -120,10 +124,14 @@ The system SHALL support listing users with pagination via `page` and `limit` qu
 - **THEN** the API responds with HTTP 401 and no user data is returned.
 
 ### Requirement: Anti-escalation constraints for admin user management
-The system SHALL prevent tenant-scoped administrators from escalating privileges: an `admin` SHALL NOT assign or change the `sysadmin` role, SHALL NOT set a user's `tenantId` to a tenant other than the admin's own tenant, and SHALL NOT create, update, or delete users that belong to other tenants or that hold the `sysadmin` role.
+The system SHALL prevent tenant-scoped users from escalating privileges. An `owner` SHALL only assign the roles `admin`, `cashier`, and `cook`; an `admin` SHALL only assign `cashier` and `cook`. Neither SHALL assign or change the `sysadmin` or `owner` role, set a user's `tenantId` to another tenant, or create, update, or delete users of other tenants, users holding `sysadmin`, or users holding a role they cannot assign.
 
 #### Scenario: Admin creating a sysadmin user
-- **WHEN** an authenticated `admin` POSTs a user payload with `roles` including `sysadmin`
+- **WHEN** an authenticated `admin` or `owner` POSTs a user payload with `roles` including `sysadmin`
+- **THEN** the API responds with HTTP 403 and no user is created.
+
+#### Scenario: Admin creating another admin
+- **WHEN** an authenticated `admin` POSTs a user payload with role `admin` or `owner`
 - **THEN** the API responds with HTTP 403 and no user is created.
 
 #### Scenario: Admin changing a user's role to sysadmin
@@ -137,6 +145,10 @@ The system SHALL prevent tenant-scoped administrators from escalating privileges
 #### Scenario: Admin editing or deleting a sysadmin user
 - **WHEN** an authenticated `admin` PUTs or DELETEs `/api/users/:id` for a user with the `sysadmin` role
 - **THEN** the API responds with HTTP 403 and no user is modified or removed.
+
+#### Scenario: Admin editing the owner
+- **WHEN** an authenticated `admin` PUTs `/api/users/:id` for a user with the `owner` role
+- **THEN** the API responds with HTTP 403 and no user is modified.
 
 ### Requirement: Password security
 The system SHALL hash passwords before storing them and SHALL NOT return the password hash in any API response.

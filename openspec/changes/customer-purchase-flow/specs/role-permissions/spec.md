@@ -27,7 +27,8 @@ The system SHALL authorize each action by role as follows, and SHALL reject any 
 | Take a delivery order out (ready → out_for_delivery) | ✓ | ✓ | ✓ | — | — | ✓ |
 | Assign or reassign a driver | ✓ | ✓ | ✓ | — | — | — |
 | Collect payment and deliver (out_for_delivery → delivered) | ✓ | ✓ | ✓ | — | — | ✓ (own) |
-| Record a rejected payment on delivery | ✓ | ✓ | ✓ | — | — | ✓ (own) |
+| Record a declined payment on delivery | ✓ | ✓ | ✓ | — | — | ✓ (own) |
+| Reject an app order before preparation (with reason) | ✓ | ✓ | ✓ | ✓ | — | — |
 | Cancel order | ✓ | ✓ | ✓ | — | — | — |
 | Correct order items | ✓ | ✓ | ✓ | — | — | — |
 | View branch orders | ✓ | ✓ | ✓ | ✓ | ✓ | delivery only |
