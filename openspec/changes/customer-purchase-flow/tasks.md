@@ -52,9 +52,9 @@
 
 ## 4. Admin (`@frontend-admin`)
 
-- [ ] 4.1 Rol "Repartidor" en el alta y la edición de usuarios
-- [ ] 4.2 Detalle y listado de pedidos: estado `out_for_delivery`, estados de pago nuevos, medio esperado, repartidor, historial de pagos
-- [ ] 4.3 Filtros por los estados nuevos (incluido `rejected`) y motivo de rechazo en el detalle
+- [x] 4.1 Rol "Repartidor" en el alta y la edición de usuarios
+- [x] 4.2 Detalle y listado de pedidos: estado `out_for_delivery`, estados de pago nuevos, medio esperado, repartidor, historial de pagos
+- [x] 4.3 Filtros por los estados nuevos (incluido `rejected`) y motivo de rechazo en el detalle
 
 ## 5. Verificación
 
