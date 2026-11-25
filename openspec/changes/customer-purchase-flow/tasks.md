@@ -1,7 +1,7 @@
 ## 0. Prerrequisitos
 
 - [x] 0.1 Verificar y archivar `pos-roles-and-cash`, `customer-identity-orders` y `delivery-location-estimate` (tareas manuales pendientes en los dos últimos)
-- [ ] 0.2 Confirmar `develop` actualizado en monorepo, `@backend`, `@frontend-client`, `@frontend-pos` y `@frontend-admin`
+- [x] 0.2 Confirmar `develop` actualizado en monorepo, `@backend`, `@frontend-client`, `@frontend-pos` y `@frontend-admin` (2026-11-25: `develop` local = remoto en los cinco; cada `feature/customer-purchase-flow` incluye todo `develop`. Ojo: la rama feature ya se fusionó a `main` en api, pos y admin, y a `release` en pos, sin pasar por `develop`)
 
 ## 1. Backend (`@backend`)
 
